@@ -1,12 +1,16 @@
 #include "Game.h"
 #include "TextureManager.h"
 #include "GameObject.h"
+#include "Map.h"
 
 /*SDL_Texture* playerTex;
 SDL_Rect srcR, destR;*/
 
 GameObject* player;
 GameObject* enemy;
+Map* map;
+
+SDL_Renderer* Game::renderer = nullptr;
 
 Game::Game()
 {}
@@ -41,8 +45,9 @@ void Game::init(const char* title, int width, int height, bool fullscreen)
 
 	playerTex = TextureManager::LoadTexture("assets/megaman.png", renderer);*/
 
-	player = new GameObject("assets/megaman.png", renderer, 0,0);
-	enemy = new GameObject("assets/enemy.png", renderer, 150, 150);
+	player = new GameObject("assets/megaman.png", 0,0);
+	enemy = new GameObject("assets/enemy.png", 150, 150);
+	map = new Map();
 }
 
 void Game::handleEvents()
@@ -78,6 +83,7 @@ void Game::render()
 {
 	SDL_RenderClear(renderer);
 	//SDL_RenderCopy(renderer, playerTex, NULL, &destR);
+	map->DrawMap();
 	player->Render();
 	enemy->Render();
 	SDL_RenderPresent(renderer);
