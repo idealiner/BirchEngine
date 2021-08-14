@@ -3,6 +3,9 @@
 #include "GameObject.h"
 #include "Map.h"
 
+#include "ECS.h"
+#include "Components.h"
+
 /*SDL_Texture* playerTex;
 SDL_Rect srcR, destR;*/
 
@@ -11,6 +14,10 @@ GameObject* enemy;
 Map* map;
 
 SDL_Renderer* Game::renderer = nullptr;
+
+Manager manager;
+auto& newPlayer(manager.addEntity());
+
 
 Game::Game()
 {}
@@ -48,6 +55,9 @@ void Game::init(const char* title, int width, int height, bool fullscreen)
 	player = new GameObject("assets/megaman.png", 0,0);
 	enemy = new GameObject("assets/enemy.png", 150, 150);
 	map = new Map();
+
+	newPlayer.addComponent<PositionComponents>();
+	//newPlayer.getComponent<PositionComponents>()
 }
 
 void Game::handleEvents()
@@ -77,6 +87,9 @@ void Game::update()
 
 	player->Update();
 	enemy->Update();
+	manager.update();
+	std::cout << newPlayer.getComponent<PositionComponents>().x() << "," <<
+		newPlayer.getComponent<PositionComponents>().y() << std::endl;
 }
 
 void Game::render()
