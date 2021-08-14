@@ -44,10 +44,16 @@
     <ClInclude Include="Src\Map.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Src\ECS.h">
+    <ClInclude Include="Src\ECS\ECS.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Src\Components.h">
+    <ClInclude Include="Src\ECS\Components.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\ECS\SpriteComponent.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\ECS\PositionComponent.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

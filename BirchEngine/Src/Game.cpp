@@ -2,21 +2,26 @@
 #include "TextureManager.h"
 #include "GameObject.h"
 #include "Map.h"
+#include "ECS/Components.h"
 
-#include "ECS.h"
-#include "Components.h"
+/*
 
-/*SDL_Texture* playerTex;
-SDL_Rect srcR, destR;*/
+#include "ECS/ECS.h"
+
+SDL_Texture* playerTex;
+SDL_Rect srcR, destR;
 
 GameObject* player;
-GameObject* enemy;
+GameObject* enemy;*/
+
+
 Map* map;
+Manager manager;
 
 SDL_Renderer* Game::renderer = nullptr;
 
-Manager manager;
-auto& newPlayer(manager.addEntity());
+
+auto& player(manager.addEntity());
 
 
 Game::Game()
@@ -50,14 +55,22 @@ void Game::init(const char* title, int width, int height, bool fullscreen)
 	playerTex = SDL_CreateTextureFromSurface(renderer, tmpSurface);
 	SDL_FreeSurface(tmpSurface);
 
-	playerTex = TextureManager::LoadTexture("assets/megaman.png", renderer);*/
+	playerTex = TextureManager::LoadTexture("assets/megaman.png", renderer);
 
 	player = new GameObject("assets/megaman.png", 0,0);
-	enemy = new GameObject("assets/enemy.png", 150, 150);
+	enemy = new GameObject("assets/enemy.png", 150, 150);*/
+
+
 	map = new Map();
 
-	newPlayer.addComponent<PositionComponents>();
-	//newPlayer.getComponent<PositionComponents>()
+	/*newPlayer.addComponent<PositionComponents>();
+	newPlayer.getComponent<PositionComponents>().setPos(500, 500);*/
+
+	//ECS implementation
+
+	player.addComponent<PositionComponents>(-500, -500);
+	player.addComponent<SpriteComponent>("assets/megaman.png");
+
 }
 
 void Game::handleEvents()
@@ -83,22 +96,34 @@ void Game::update()
 	destR.w = 128;
 	destR.x = cnt;
 
-	std::cout << cnt << std::endl;*/
+	std::cout << cnt << std::endl;
 
 	player->Update();
-	enemy->Update();
+	enemy->Update();*/
+
+	manager.refresh();
 	manager.update();
-	std::cout << newPlayer.getComponent<PositionComponents>().x() << "," <<
-		newPlayer.getComponent<PositionComponents>().y() << std::endl;
+
+	if (player.getComponent<PositionComponents>().x() > 300)
+	{
+		player.addComponent<SpriteComponent>("assets/enemy.png");
+	}
+
+	/*std::cout << player.getComponent<PositionComponents>().x() << "," <<
+		player.getComponent<PositionComponents>().y() << std::endl;*/
 }
 
 void Game::render()
 {
 	SDL_RenderClear(renderer);
 	//SDL_RenderCopy(renderer, playerTex, NULL, &destR);
+
 	map->DrawMap();
-	player->Render();
-	enemy->Render();
+	
+	//player->Render();
+	//enemy->Render();
+
+	manager.draw();
 	SDL_RenderPresent(renderer);
 }
 

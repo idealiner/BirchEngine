@@ -1,7 +1,11 @@
 #pragma once
 
 #include "ECS.h"
+#include "PositionComponent.h"
+#include "SpriteComponent.h"
 
+
+/*
 class PositionComponents : public Component
 {
 private:
@@ -31,4 +35,4 @@ public:
 		ypos = y;
 	}
 
-};
+};*/
