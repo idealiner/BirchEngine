@@ -48,7 +48,7 @@ void Game::init(const char* title, int width, int height, bool fullscreen)
 
 	//ECS implementation
 
-	player.addComponent<TransformComponents>();
+	player.addComponent<TransformComponents>(1);
 	player.addComponent<SpriteComponent>("assets/megaman.png");
 	player.addComponent<KeyboardController>();
 	player.addComponent<ColliderComponent>("player");
@@ -79,16 +79,12 @@ void Game::update()
 	manager.refresh();
 	manager.update();
 
-
-	/*player.getComponent<TransformComponents>().position.Add(Vector2D(5, 0));
-
-	if (player.getComponent<TransformComponents>().position.x > 300)
+	if (Collision::AABB(player.getComponent<ColliderComponent>().collider,
+		wall.getComponent<ColliderComponent>().collider))
 	{
-		player.addComponent<SpriteComponent>("assets/enemy.png");
+		player.getComponent<TransformComponents>().scale = 2;
+		std::cout << "Wall Hit!" << std::endl;
 	}
-
-	std::cout << player.getComponent<TransformComponents>().x() << "," <<
-		player.getComponent<PositionComponents>().y() << std::endl;*/
 }
 
 void Game::render()
