@@ -7,6 +7,7 @@
 #include <bitset>
 #include <array>
 
+
 class Component;
 class Entity;
 
@@ -50,8 +51,8 @@ private:
 	bool active = true;
 	std::vector<std::unique_ptr<Component>> components;
 
-	ComponentArray ComponentArray;
-	ComponentBitSet ComponentBitSet;
+	ComponentArray componentArray;
+	ComponentBitSet componentBitSet;
 
 public:
 	void update()
@@ -67,7 +68,8 @@ public:
 
 	template <typename T> bool hasComponent() const
 	{
-		return ComponentBitSet[getComponentID<T>];
+		//return componentBitSet[getComponentTypeID<T>];
+		return componentBitSet[getComponentTypeID<T>()];
 	}
 
 	template <typename T, typename... TArgs>
@@ -78,8 +80,8 @@ public:
 		std::unique_ptr<Component> uPtr{ c };
 		components.emplace_back(std::move(uPtr));
 
-		ComponentArray[getComponentTypeID<T>()] = c;
-		ComponentBitSet[getComponentTypeID<T>()] = true;
+		componentArray[getComponentTypeID<T>()] = c;
+		componentBitSet[getComponentTypeID<T>()] = true;
 
 		c->init();
 		return *c;
@@ -87,7 +89,7 @@ public:
 
 	template <typename T> T& getComponent() const
 	{
-		auto ptr(ComponentArray[getComponentTypeID<T>()]);
+		auto ptr(componentArray[getComponentTypeID<T>()]);
 		return *static_cast<T*>(ptr);
 	}
 

@@ -3,26 +3,17 @@
 #include "GameObject.h"
 #include "Map.h"
 #include "ECS/Components.h"
-
-/*
-
-#include "ECS/ECS.h"
-
-SDL_Texture* playerTex;
-SDL_Rect srcR, destR;
-
-GameObject* player;
-GameObject* enemy;*/
-
+#include "Vector2D.h"
+#include "Collision.h"
 
 Map* map;
 Manager manager;
 
 SDL_Renderer* Game::renderer = nullptr;
-
+SDL_Event Game::event;
 
 auto& player(manager.addEntity());
-
+auto& wall(manager.addEntity());
 
 Game::Game()
 {}
@@ -51,31 +42,25 @@ void Game::init(const char* title, int width, int height, bool fullscreen)
 		isRunning = true;
 	}
 
-	/*SDL_Surface* tmpSurface = IMG_Load("assets/megaman.png");
-	playerTex = SDL_CreateTextureFromSurface(renderer, tmpSurface);
-	SDL_FreeSurface(tmpSurface);
-
-	playerTex = TextureManager::LoadTexture("assets/megaman.png", renderer);
-
-	player = new GameObject("assets/megaman.png", 0,0);
-	enemy = new GameObject("assets/enemy.png", 150, 150);*/
-
 
 	map = new Map();
 
-	/*newPlayer.addComponent<PositionComponents>();
-	newPlayer.getComponent<PositionComponents>().setPos(500, 500);*/
 
 	//ECS implementation
 
-	player.addComponent<PositionComponents>(-500, -500);
+	player.addComponent<TransformComponents>();
 	player.addComponent<SpriteComponent>("assets/megaman.png");
+	player.addComponent<KeyboardController>();
+	player.addComponent<ColliderComponent>("player");
 
+	wall.addComponent<TransformComponents>(300.0f, 300.0f, 300, 20, 1);
+	wall.addComponent<SpriteComponent>("assets/dirt.png");
+	wall.addComponent<ColliderComponent>("wall");
 }
 
 void Game::handleEvents()
 {
-	SDL_Event event;
+	
 
 	SDL_PollEvent(&event);
 
@@ -91,25 +76,18 @@ void Game::handleEvents()
 
 void Game::update()
 {
-	/*cnt++;
-	destR.h = 128;
-	destR.w = 128;
-	destR.x = cnt;
-
-	std::cout << cnt << std::endl;
-
-	player->Update();
-	enemy->Update();*/
-
 	manager.refresh();
 	manager.update();
 
-	if (player.getComponent<PositionComponents>().x() > 300)
+
+	/*player.getComponent<TransformComponents>().position.Add(Vector2D(5, 0));
+
+	if (player.getComponent<TransformComponents>().position.x > 300)
 	{
 		player.addComponent<SpriteComponent>("assets/enemy.png");
 	}
 
-	/*std::cout << player.getComponent<PositionComponents>().x() << "," <<
+	std::cout << player.getComponent<TransformComponents>().x() << "," <<
 		player.getComponent<PositionComponents>().y() << std::endl;*/
 }
 
