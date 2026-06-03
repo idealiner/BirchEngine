@@ -123,6 +123,7 @@ CMakeFiles/birchengine.dir/Src/Game.cpp.o: /home/uncannyvalleypictures/myprogram
   /usr/include/c++/13/cstddef \
   /usr/include/c++/13/cstdio \
   /usr/include/c++/13/cstdlib \
+  /usr/include/c++/13/cstring \
   /usr/include/c++/13/cwchar \
   /usr/include/c++/13/cwctype \
   /usr/include/c++/13/debug/assertions.h \
@@ -1627,7 +1628,11 @@ CMakeFiles/birchengine.dir/Src/main.cpp.o: /home/uncannyvalleypictures/myprogram
 
 /usr/include/x86_64-linux-gnu/c++/13/bits/c++config.h:
 
+/usr/include/x86_64-linux-gnu/c++/13/bits/c++allocator.h:
+
 /usr/include/c++/13/debug/assertions.h:
+
+/usr/include/c++/13/cstring:
 
 /usr/include/c++/13/cstdlib:
 
@@ -1787,12 +1792,6 @@ CMakeFiles/birchengine.dir/Src/main.cpp.o: /home/uncannyvalleypictures/myprogram
 
 /usr/include/SDL2/SDL_touch.h:
 
-/usr/include/c++/13/exception:
-
-/usr/include/c++/13/bits/stl_pair.h:
-
-/usr/include/x86_64-linux-gnu/bits/errno.h:
-
 /usr/include/SDL2/SDL_hidapi.h:
 
 /usr/include/x86_64-linux-gnu/bits/atomic_wide_counter.h:
@@ -1824,8 +1823,6 @@ CMakeFiles/birchengine.dir/Src/main.cpp.o: /home/uncannyvalleypictures/myprogram
 /usr/include/x86_64-linux-gnu/bits/floatn.h:
 
 /usr/include/x86_64-linux-gnu/bits/types/struct_itimerspec.h:
-
-/usr/include/x86_64-linux-gnu/c++/13/bits/c++allocator.h:
 
 /usr/include/c++/13/bits/string_view.tcc:
 
@@ -2014,6 +2011,12 @@ CMakeFiles/birchengine.dir/Src/main.cpp.o: /home/uncannyvalleypictures/myprogram
 /usr/include/c++/13/bits/stringfwd.h:
 
 /usr/include/c++/13/backward/binders.h:
+
+/usr/include/c++/13/exception:
+
+/usr/include/c++/13/bits/stl_pair.h:
+
+/usr/include/x86_64-linux-gnu/bits/errno.h:
 
 /usr/include/c++/13/ext/alloc_traits.h:
 

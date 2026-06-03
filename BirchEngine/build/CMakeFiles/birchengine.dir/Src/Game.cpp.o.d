@@ -302,4 +302,5 @@ CMakeFiles/birchengine.dir/Src/Game.cpp.o: \
  /usr/include/c++/13/bits/ostream.tcc /usr/include/c++/13/istream \
  /usr/include/c++/13/bits/istream.tcc \
  /home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/TextureManager.h \
- /home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/GameObject.h
+ /home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/GameObject.h \
+ /usr/include/c++/13/cstring
