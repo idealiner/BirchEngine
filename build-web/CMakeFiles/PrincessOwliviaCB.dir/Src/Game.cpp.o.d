@@ -723,4 +723,25 @@ CMakeFiles/PrincessOwliviaCB.dir/Src/Game.cpp.o: \
   /home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/emsdk/upstream/emscripten/cache/sysroot/include/c++/v1/print \
   /home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/emsdk/upstream/emscripten/cache/sysroot/include/unistd.h \
   /home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/TextureManager.h \
-  /home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/GameObject.h
+  /home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/GameObject.h \
+  /home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/emsdk/upstream/emscripten/cache/sysroot/include/c++/v1/fstream \
+  /home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/emsdk/upstream/emscripten/cache/sysroot/include/c++/v1/__filesystem/path.h \
+  /home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/emsdk/upstream/emscripten/cache/sysroot/include/c++/v1/iomanip \
+  /home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/emsdk/upstream/emscripten/cache/sysroot/include/c++/v1/filesystem \
+  /home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/emsdk/upstream/emscripten/cache/sysroot/include/c++/v1/__filesystem/copy_options.h \
+  /home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/emsdk/upstream/emscripten/cache/sysroot/include/c++/v1/__filesystem/directory_entry.h \
+  /home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/emsdk/upstream/emscripten/cache/sysroot/include/c++/v1/__filesystem/file_status.h \
+  /home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/emsdk/upstream/emscripten/cache/sysroot/include/c++/v1/__filesystem/file_type.h \
+  /home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/emsdk/upstream/emscripten/cache/sysroot/include/c++/v1/__filesystem/perms.h \
+  /home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/emsdk/upstream/emscripten/cache/sysroot/include/c++/v1/__filesystem/file_time_type.h \
+  /home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/emsdk/upstream/emscripten/cache/sysroot/include/c++/v1/__chrono/file_clock.h \
+  /home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/emsdk/upstream/emscripten/cache/sysroot/include/c++/v1/__filesystem/filesystem_error.h \
+  /home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/emsdk/upstream/emscripten/cache/sysroot/include/c++/v1/__filesystem/operations.h \
+  /home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/emsdk/upstream/emscripten/cache/sysroot/include/c++/v1/__filesystem/perm_options.h \
+  /home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/emsdk/upstream/emscripten/cache/sysroot/include/c++/v1/__filesystem/space_info.h \
+  /home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/emsdk/upstream/emscripten/cache/sysroot/include/c++/v1/__filesystem/directory_iterator.h \
+  /home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/emsdk/upstream/emscripten/cache/sysroot/include/c++/v1/__filesystem/directory_options.h \
+  /home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/emsdk/upstream/emscripten/cache/sysroot/include/c++/v1/__filesystem/path_iterator.h \
+  /home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/emsdk/upstream/emscripten/cache/sysroot/include/c++/v1/__filesystem/recursive_directory_iterator.h \
+  /home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/emsdk/upstream/emscripten/cache/sysroot/include/c++/v1/__filesystem/u8path.h \
+  /home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/emsdk/upstream/emscripten/cache/sysroot/include/c++/v1/sstream

@@ -6,6 +6,10 @@
 #include <cmath>
 #include <algorithm>
 #include <array>
+#include <cctype>
+#include <cstdlib>
+#include <fstream>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -64,6 +68,11 @@ bool levelCleared = false;
 int levelClearFrames = 0;
 int levelRestartFrames = 0;
 bool gameCompleted = false;
+bool highScoreLoaded = false;
+bool nameEntryActive = false;
+int highScoreValue = 0;
+std::string highScoreName = "ANON";
+std::string nameEntryBuffer;
 int stompImpactFrames = 0;
 int butterflyWinFrames = 0;
 bool gameOver = false;
@@ -150,6 +159,17 @@ static const int BUTTERFLY_SIZE = 150;
 static const int BUTTERFLY_FRAMES = 6;
 static const int TARGET_BUTTERFLIES_BASE = 10;
 static const int MAX_LEVELS = 4;
+static const int MAX_NAME_LENGTH = 12;
+static const char* HIGH_SCORE_FILE_NAME = "PrincessOwliviaCB-highscore.xml";
+
+static std::string EscapeXml(const std::string& value);
+static std::string UnescapeXml(const std::string& value);
+static std::string ExtractXmlTag(const std::string& xml, const char* tagName);
+static std::string SanitizePlayerName(const std::string& raw);
+static void LoadHighScore();
+static void SaveHighScore(const std::string& playerName, int score);
+static void BeginHighScoreEntry();
+static void FinishHighScoreEntry();
 
 static float TriangleWave(float t)
 {
@@ -371,6 +391,9 @@ static void ResetLevelState(bool incrementLevel)
 	levelClearFrames = 0;
 	levelRestartFrames = 0;
 	gameCompleted = false;
+	nameEntryActive = false;
+	nameEntryBuffer.clear();
+	SDL_StopTextInput();
 	gameOver = false;
 	levelTransitionActive = false;
 	currentTimeLeft = LEVEL_TIME_SECONDS;
@@ -590,24 +613,30 @@ static void DrawGlyph(SDL_Renderer* renderer, int x, int y, int scale, char ch)
 	static const char* G9[7] = { "11111", "10001", "10001", "11111", "00001", "00001", "11111" };
 	static const char* GG[7] = { "01110", "10001", "10000", "10011", "10001", "10001", "01110" };
 	static const char* GA[7] = { "01110", "10001", "10001", "11111", "10001", "10001", "10001" };
+	static const char* GB[7] = { "11110", "10001", "10001", "11110", "10001", "10001", "11110" };
 	static const char* GF[7] = { "11111", "10000", "10000", "11110", "10000", "10000", "10000" };
 	static const char* GD[7] = { "11110", "10001", "10001", "10001", "10001", "10001", "11110" };
 	static const char* GC[7] = { "01111", "10000", "10000", "10000", "10000", "10000", "01111" };
 	static const char* GE[7] = { "11111", "10000", "10000", "11110", "10000", "10000", "11111" };
+	static const char* GH[7] = { "10001", "10001", "10001", "11111", "10001", "10001", "10001" };
 	static const char* GL[7] = { "10000", "10000", "10000", "10000", "10000", "10000", "11111" };
 	static const char* GI[7] = { "11111", "00100", "00100", "00100", "00100", "00100", "11111" };
+	static const char* GJ[7] = { "00111", "00010", "00010", "00010", "10010", "10010", "01100" };
 	static const char* GK[7] = { "10001", "10010", "10100", "11000", "10100", "10010", "10001" };
 	static const char* GN[7] = { "10001", "11001", "10101", "10011", "10001", "10001", "10001" };
 	static const char* GM[7] = { "10001", "11011", "10101", "10101", "10001", "10001", "10001" };
 	static const char* GO[7] = { "01110", "10001", "10001", "10001", "10001", "10001", "01110" };
 	static const char* GP[7] = { "11110", "10001", "10001", "11110", "10000", "10000", "10000" };
+	static const char* GQ[7] = { "01110", "10001", "10001", "10001", "10101", "10010", "01101" };
 	static const char* GR[7] = { "11110", "10001", "10001", "11110", "10100", "10010", "10001" };
 	static const char* GS[7] = { "01111", "10000", "10000", "01110", "00001", "00001", "11110" };
 	static const char* GT[7] = { "11111", "00100", "00100", "00100", "00100", "00100", "00100" };
 	static const char* GU[7] = { "10001", "10001", "10001", "10001", "10001", "10001", "01110" };
 	static const char* GV[7] = { "10001", "10001", "10001", "10001", "01010", "01010", "00100" };
+	static const char* GW[7] = { "10001", "10001", "10001", "10101", "10101", "10101", "01010" };
 	static const char* GX[7] = { "10001", "10001", "01010", "00100", "01010", "10001", "10001" };
 	static const char* GY[7] = { "10001", "01010", "00100", "00100", "00100", "00100", "00100" };
+	static const char* GZ[7] = { "11111", "00001", "00010", "00100", "01000", "10000", "11111" };
 	static const char* GColon[7] = { "00000", "00100", "00100", "00000", "00100", "00100", "00000" };
 	static const char* GSpace[7] = { "00000", "00000", "00000", "00000", "00000", "00000", "00000" };
 	const char** g = GSpace;
@@ -626,24 +655,30 @@ static void DrawGlyph(SDL_Renderer* renderer, int x, int y, int scale, char ch)
 	case '9': g = G9; break;
 	case 'G': g = GG; break;
 	case 'A': g = GA; break;
+	case 'B': g = GB; break;
 	case 'F': g = GF; break;
 	case 'D': g = GD; break;
 	case 'C': g = GC; break;
 	case 'E': g = GE; break;
+	case 'H': g = GH; break;
 	case 'L': g = GL; break;
 	case 'I': g = GI; break;
+	case 'J': g = GJ; break;
 	case 'K': g = GK; break;
 	case 'N': g = GN; break;
 	case 'M': g = GM; break;
 	case 'O': g = GO; break;
 	case 'P': g = GP; break;
+	case 'Q': g = GQ; break;
 	case 'R': g = GR; break;
 	case 'S': g = GS; break;
 	case 'T': g = GT; break;
 	case 'U': g = GU; break;
 	case 'V': g = GV; break;
+	case 'W': g = GW; break;
 	case 'X': g = GX; break;
 	case 'Y': g = GY; break;
+	case 'Z': g = GZ; break;
 	case ':': g = GColon; break;
 	default: break;
 	}
@@ -673,6 +708,168 @@ static void DrawText(SDL_Renderer* renderer, int x, int y, int scale, const char
 	{
 		DrawGlyph(renderer, x + i * (6 * scale), y, scale, text[i]);
 	}
+}
+
+static std::string EscapeXml(const std::string& value)
+{
+	std::string escaped;
+	for (char ch : value)
+	{
+		switch (ch)
+		{
+		case '&': escaped += "&amp;"; break;
+		case '<': escaped += "&lt;"; break;
+		case '>': escaped += "&gt;"; break;
+		case '"': escaped += "&quot;"; break;
+		case '\'': escaped += "&apos;"; break;
+		default: escaped.push_back(ch); break;
+		}
+	}
+	return escaped;
+}
+
+static std::string UnescapeXml(const std::string& value)
+{
+	std::string unescaped = value;
+	struct Entity { const char* from; const char* to; };
+	static const Entity entities[] = {
+		{ "&amp;", "&" },
+		{ "&lt;", "<" },
+		{ "&gt;", ">" },
+		{ "&quot;", "\"" },
+		{ "&apos;", "'" }
+	};
+	for (const Entity& entity : entities)
+	{
+		size_t pos = 0;
+		while ((pos = unescaped.find(entity.from, pos)) != std::string::npos)
+		{
+			unescaped.replace(pos, std::strlen(entity.from), entity.to);
+			pos += std::strlen(entity.to);
+		}
+	}
+	return unescaped;
+}
+
+static std::string ExtractXmlTag(const std::string& xml, const char* tagName)
+{
+	const std::string openTag = std::string("<") + tagName + ">";
+	const std::string closeTag = std::string("</") + tagName + ">";
+	const size_t start = xml.find(openTag);
+	if (start == std::string::npos)
+	{
+		return "";
+	}
+	const size_t valueStart = start + openTag.size();
+	const size_t end = xml.find(closeTag, valueStart);
+	if (end == std::string::npos)
+	{
+		return "";
+	}
+	return UnescapeXml(xml.substr(valueStart, end - valueStart));
+}
+
+static std::string SanitizePlayerName(const std::string& raw)
+{
+	std::string sanitized;
+	for (char ch : raw)
+	{
+		unsigned char value = (unsigned char)ch;
+		if (std::isalnum(value))
+		{
+			sanitized.push_back((char)std::toupper(value));
+		}
+		else if (std::isspace(value))
+		{
+			if (!sanitized.empty() && sanitized.back() != ' ')
+			{
+				sanitized.push_back(' ');
+			}
+		}
+		if ((int)sanitized.size() >= MAX_NAME_LENGTH)
+		{
+			break;
+		}
+	}
+	while (!sanitized.empty() && sanitized.front() == ' ')
+	{
+		sanitized.erase(sanitized.begin());
+	}
+	while (!sanitized.empty() && sanitized.back() == ' ')
+	{
+		sanitized.pop_back();
+	}
+	if (sanitized.empty())
+	{
+		return "ANON";
+	}
+	return sanitized;
+}
+
+static void LoadHighScore()
+{
+	if (highScoreLoaded)
+	{
+		return;
+	}
+	highScoreLoaded = true;
+
+	std::ifstream input(HIGH_SCORE_FILE_NAME);
+	if (!input.is_open())
+	{
+		return;
+	}
+
+	std::ostringstream buffer;
+	buffer << input.rdbuf();
+	const std::string xml = buffer.str();
+	const std::string savedName = ExtractXmlTag(xml, "name");
+	const std::string savedScore = ExtractXmlTag(xml, "score");
+	if (!savedName.empty())
+	{
+		highScoreName = SanitizePlayerName(savedName);
+	}
+	if (!savedScore.empty())
+	{
+		highScoreValue = std::max(0, std::atoi(savedScore.c_str()));
+	}
+}
+
+static void SaveHighScore(const std::string& playerName, int score)
+{
+	highScoreName = SanitizePlayerName(playerName);
+	highScoreValue = std::max(0, score);
+
+	std::ofstream output(HIGH_SCORE_FILE_NAME, std::ios::trunc);
+	if (!output.is_open())
+	{
+		std::fprintf(stderr, "Failed to write high score file '%s'\n", HIGH_SCORE_FILE_NAME);
+		return;
+	}
+
+	output << "<highscore>\n";
+	output << "  <name>" << EscapeXml(highScoreName) << "</name>\n";
+	output << "  <score>" << highScoreValue << "</score>\n";
+	output << "</highscore>\n";
+}
+
+static void BeginHighScoreEntry()
+{
+	if (nameEntryActive || scoreCounter <= highScoreValue)
+	{
+		return;
+	}
+	nameEntryActive = true;
+	nameEntryBuffer.clear();
+	SDL_StartTextInput();
+}
+
+static void FinishHighScoreEntry()
+{
+	SaveHighScore(nameEntryBuffer, scoreCounter);
+	nameEntryActive = false;
+	nameEntryBuffer.clear();
+	SDL_StopTextInput();
 }
 
 Game::Game()
@@ -776,6 +973,7 @@ void Game::init(const char* title, int width, int height, bool fullscreen)
 
 	if (isRunning)
 	{
+		LoadHighScore();
 		splashTex = TextureManager::LoadTexture("assets/coverart.png", renderer);
 		butterflyTex = TextureManager::LoadTexture("assets/coins.png", renderer);
 		const int groundY = SCREEN_HEIGHT - GROUND_HEIGHT - SPRITE_SIZE;
@@ -788,6 +986,8 @@ void Game::init(const char* title, int width, int height, bool fullscreen)
 		levelNumber = 1;
 		butterflyGoal = TARGET_BUTTERFLIES_BASE;
 		gameCompleted = false;
+		nameEntryActive = false;
+		nameEntryBuffer.clear();
 		if (audioDevice == 0)
 		{
 			SDL_AudioSpec want{};
@@ -827,6 +1027,22 @@ void Game::handleEvents()
 				DismissSplash();
 				break;
 			}
+			if (nameEntryActive)
+			{
+				if (event.key.repeat == 0 && event.key.keysym.sym == SDLK_RETURN)
+				{
+					FinishHighScoreEntry();
+				}
+				else if (event.key.repeat == 0 && event.key.keysym.sym == SDLK_BACKSPACE && !nameEntryBuffer.empty())
+				{
+					nameEntryBuffer.pop_back();
+				}
+				else if (event.key.repeat == 0 && event.key.keysym.sym == SDLK_ESCAPE)
+				{
+					FinishHighScoreEntry();
+				}
+				break;
+			}
 			if (event.key.repeat == 0 && event.key.keysym.sym == SDLK_RETURN)
 			{
 				if (gameOver)
@@ -841,6 +1057,24 @@ void Game::handleEvents()
 			if (event.key.repeat == 0 && event.key.keysym.sym == SDLK_SPACE)
 			{
 				input.jumpPressed = true;
+			}
+			break;
+		case SDL_TEXTINPUT:
+			if (nameEntryActive)
+			{
+				for (int i = 0; event.text.text[i] != '\0' && (int)nameEntryBuffer.size() < MAX_NAME_LENGTH; ++i)
+				{
+					char ch = event.text.text[i];
+					unsigned char value = (unsigned char)ch;
+					if (std::isalnum(value))
+					{
+						nameEntryBuffer.push_back((char)std::toupper(value));
+					}
+					else if (std::isspace(value) && !nameEntryBuffer.empty() && nameEntryBuffer.back() != ' ')
+					{
+						nameEntryBuffer.push_back(' ');
+					}
+				}
 			}
 			break;
 		case SDL_FINGERDOWN:
@@ -952,12 +1186,12 @@ void Game::update()
 		return;
 	}
 
-	if (input.restartPressed && gameOver)
+	if (input.restartPressed && gameOver && !nameEntryActive)
 	{
 		ResetLevelState(false);
 	}
 
-	if (input.restartPressed && gameCompleted)
+	if (input.restartPressed && gameCompleted && !nameEntryActive)
 	{
 		ResetLevelState(false);
 	}
@@ -1028,6 +1262,7 @@ void Game::update()
 		musicTrackMode = 2;
 		musicSamplesLeft = 0;
 		PlayGameOverSfx();
+		BeginHighScoreEntry();
 		return;
 	}
 
@@ -1242,6 +1477,7 @@ void Game::update()
 					musicSamplesLeft = 0;
 					musicPhase = 0.0;
 					PlayWinSfx();
+					BeginHighScoreEntry();
 				}
 				else
 				{
@@ -1266,24 +1502,6 @@ void Game::update()
 	{
 		floatingScoreFrames--;
 		if ((floatingScoreFrames % 3) == 0) floatingScoreY--;
-	}
-
-	if (gameCompleted)
-	{
-		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
-		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 190);
-		SDL_Rect completeShade = { 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT };
-		SDL_RenderFillRect(renderer, &completeShade);
-
-		SDL_SetRenderDrawColor(renderer, 255, 220, 96, 255);
-		DrawText(renderer, SCREEN_WIDTH / 2 - 198, SCREEN_HEIGHT / 2 - 52, 4, "ALL STAGES CLEAR");
-		SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-		DrawText(renderer, SCREEN_WIDTH / 2 - 192, SCREEN_HEIGHT / 2 + 6, 3, "YOU COMPLETED PRINCESSOWLIVIACB");
-		DrawText(renderer, SCREEN_WIDTH / 2 - 162, SCREEN_HEIGHT / 2 + 52, 3, "PRESS ENTER TO RESTART");
-
-		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
-		SDL_RenderPresent(renderer);
-		return;
 	}
 }
 
@@ -1313,7 +1531,12 @@ void Game::render()
 		const int splashPromptHeight = 7 * splashScale;
 		const int splashPromptX = (SCREEN_WIDTH - splashPromptWidth) / 2;
 		const int splashPromptY = (SCREEN_HEIGHT - splashPromptHeight) / 2;
+		char bestText[48];
+		std::snprintf(bestText, sizeof(bestText), "BEST %s %06d", highScoreName.c_str(), highScoreValue);
+		const int bestScale = 2;
+		const int bestWidth = (int)std::strlen(bestText) * 6 * bestScale;
 		DrawText(renderer, splashPromptX, splashPromptY, splashScale, splashPrompt);
+		DrawText(renderer, (SCREEN_WIDTH - bestWidth) / 2, splashPromptY + 42, bestScale, bestText);
 		SDL_RenderPresent(renderer);
 		return;
 	}
@@ -1532,6 +1755,40 @@ void Game::render()
 		DrawText(renderer, SCREEN_WIDTH / 2 - 120, SCREEN_HEIGHT / 2 + 58, 3, "PRESS ENTER TO PAUSE");
 		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
 	}
+	else if (gameCompleted)
+	{
+		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 190);
+		SDL_Rect completeShade = { 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT };
+		SDL_RenderFillRect(renderer, &completeShade);
+		SDL_SetRenderDrawColor(renderer, 255, 220, 96, 255);
+		DrawText(renderer, SCREEN_WIDTH / 2 - 198, SCREEN_HEIGHT / 2 - 72, 4, "ALL STAGES CLEAR");
+		SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+
+		char bestText[48];
+		std::snprintf(bestText, sizeof(bestText), "BEST %s %06d", highScoreName.c_str(), highScoreValue);
+		DrawText(renderer, SCREEN_WIDTH / 2 - ((int)std::strlen(bestText) * 9), SCREEN_HEIGHT / 2 - 14, 3, bestText);
+
+		if (nameEntryActive)
+		{
+			std::string entryText = nameEntryBuffer;
+			if (entryText.empty())
+			{
+				entryText = "_";
+			}
+			else if ((SDL_GetTicks() / 250) % 2 == 0 && (int)entryText.size() < MAX_NAME_LENGTH)
+			{
+				entryText.push_back('_');
+			}
+			DrawText(renderer, SCREEN_WIDTH / 2 - 132, SCREEN_HEIGHT / 2 + 28, 3, "NEW HIGH SCORE ENTER NAME");
+			DrawText(renderer, SCREEN_WIDTH / 2 - ((int)entryText.size() * 9), SCREEN_HEIGHT / 2 + 68, 3, entryText.c_str());
+		}
+		else
+		{
+			DrawText(renderer, SCREEN_WIDTH / 2 - 162, SCREEN_HEIGHT / 2 + 52, 3, "PRESS ENTER TO RESTART");
+		}
+		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
+	}
 	else if (gameOver)
 	{
 		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
@@ -1539,10 +1796,32 @@ void Game::render()
 		SDL_Rect gameOverShade = { 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT };
 		SDL_RenderFillRect(renderer, &gameOverShade);
 		SDL_SetRenderDrawColor(renderer, 255, 84, 84, 255);
-		DrawText(renderer, SCREEN_WIDTH / 2 - 132, SCREEN_HEIGHT / 2 - 40, 5, "GAME OVER");
+		DrawText(renderer, SCREEN_WIDTH / 2 - 132, SCREEN_HEIGHT / 2 - 52, 5, "GAME OVER");
 		SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-		DrawText(renderer, SCREEN_WIDTH / 2 - 168, SCREEN_HEIGHT / 2 + 18, 4, "TIME UP TRY AGAIN");
-		DrawText(renderer, SCREEN_WIDTH / 2 - 192, SCREEN_HEIGHT / 2 + 62, 3, "PRESS ENTER TO RESTART");
+		DrawText(renderer, SCREEN_WIDTH / 2 - 168, SCREEN_HEIGHT / 2 + 4, 4, "TIME UP TRY AGAIN");
+
+		char bestText[48];
+		std::snprintf(bestText, sizeof(bestText), "BEST %s %06d", highScoreName.c_str(), highScoreValue);
+		DrawText(renderer, SCREEN_WIDTH / 2 - ((int)std::strlen(bestText) * 9), SCREEN_HEIGHT / 2 + 52, 3, bestText);
+
+		if (nameEntryActive)
+		{
+			std::string entryText = nameEntryBuffer;
+			if (entryText.empty())
+			{
+				entryText = "_";
+			}
+			else if ((SDL_GetTicks() / 250) % 2 == 0 && (int)entryText.size() < MAX_NAME_LENGTH)
+			{
+				entryText.push_back('_');
+			}
+			DrawText(renderer, SCREEN_WIDTH / 2 - 132, SCREEN_HEIGHT / 2 + 90, 3, "NEW HIGH SCORE ENTER NAME");
+			DrawText(renderer, SCREEN_WIDTH / 2 - ((int)entryText.size() * 9), SCREEN_HEIGHT / 2 + 128, 3, entryText.c_str());
+		}
+		else
+		{
+			DrawText(renderer, SCREEN_WIDTH / 2 - 162, SCREEN_HEIGHT / 2 + 100, 3, "PRESS ENTER TO RESTART");
+		}
 		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
 	}
 
@@ -1592,6 +1871,8 @@ void Game::clean()
 		SDL_CloseAudioDevice(audioDevice);
 		audioDevice = 0;
 	}
+
+	SDL_StopTextInput();
 
 	IMG_Quit();
 	SDL_Quit();
