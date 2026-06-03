@@ -941,7 +941,13 @@ void Game::init(const char* title, int width, int height, bool fullscreen)
 				std::cerr << "Failed to load window icon thumbnail" << std::endl;
 			}
 
-			renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+			Uint32 rendererFlags = SDL_RENDERER_ACCELERATED;
+#ifdef BIRCHENGINE_WEB
+			rendererFlags = SDL_RENDERER_ACCELERATED;
+#else
+			rendererFlags = SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC;
+#endif
+			renderer = SDL_CreateRenderer(window, -1, rendererFlags);
 			if (!renderer)
 			{
 				renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);

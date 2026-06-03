@@ -41,6 +41,7 @@ if (BIRCHENGINE_IS_WEB)
         "SHELL:-sUSE_SDL=2"
         "SHELL:-sUSE_SDL_IMAGE=2"
         "SHELL:-s SDL2_IMAGE_FORMATS=['png']"
+        "SHELL:--shell-file ${CMAKE_SOURCE_DIR}/web/shell.html"
         "SHELL:--preload-file ${CMAKE_SOURCE_DIR}/assets@/assets"
         "SHELL:-s ALLOW_MEMORY_GROWTH=1"
         "SHELL:-s ASSERTIONS=1"
