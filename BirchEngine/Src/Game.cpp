@@ -6,6 +6,8 @@
 #include <cmath>
 #include <algorithm>
 #include <array>
+#include <string>
+#include <vector>
 
 /*SDL_Texture* playerTex;
 SDL_Rect srcR, destR;*/
@@ -23,6 +25,7 @@ float skyParallaxX = 0.0f;
 float flowerParallaxX = 0.0f;
 
 SDL_Texture* butterflyTex = nullptr;
+SDL_Texture* splashTex = nullptr;
 bool butterflyActive = true;
 float butterflyX = 0.0f;
 float butterflyY = 0.0f;
@@ -673,6 +676,12 @@ Game::Game()
 Game::~Game()
 {}
 
+void Game::DismissSplash()
+{
+	splashActive = false;
+	splashFrames = 0;
+}
+
 void Game::ResetInputEdges()
 {
 	input.jumpPressed = false;
@@ -702,20 +711,67 @@ void Game::init(const char* title, int width, int height, bool fullscreen)
 		flags = SDL_WINDOW_FULLSCREEN;
 	}
 
-	if (SDL_Init(SDL_INIT_EVERYTHING) == 0)
+	const Uint32 sdlInitFlags = SDL_INIT_VIDEO | SDL_INIT_AUDIO | SDL_INIT_EVENTS;
+	if (SDL_Init(sdlInitFlags) == 0)
 	{
-		IMG_Init(IMG_INIT_PNG);
+		int imgFlags = IMG_Init(IMG_INIT_PNG);
+		if ((imgFlags & IMG_INIT_PNG) == 0)
+		{
+			std::cerr << "IMG_Init PNG failed: " << IMG_GetError() << std::endl;
+		}
+
 		window = SDL_CreateWindow(title, SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, width, height, flags);
-		renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+		if (!window)
+		{
+			std::cerr << "SDL_CreateWindow failed: " << SDL_GetError() << std::endl;
+		}
+
+		if (window)
+		{
+			SDL_Surface* iconSurface = TextureManager::LoadSurface("assets/thumbnail.png");
+			if (iconSurface)
+			{
+				SDL_SetWindowIcon(window, iconSurface);
+				SDL_FreeSurface(iconSurface);
+			}
+			else
+			{
+				std::cerr << "Failed to load window icon thumbnail" << std::endl;
+			}
+
+			renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+			if (!renderer)
+			{
+				renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_ACCELERATED);
+			}
+			if (!renderer)
+			{
+				renderer = SDL_CreateRenderer(window, -1, SDL_RENDERER_SOFTWARE);
+			}
+			if (!renderer)
+			{
+				renderer = SDL_CreateRenderer(window, -1, 0);
+			}
+		}
+
 		if (renderer)
 		{
 			SDL_SetRenderDrawColor(renderer, 107, 185, 240, 255);
 			isRunning = true;
 		}
+		else
+		{
+			std::cerr << "SDL_CreateRenderer failed: " << SDL_GetError() << std::endl;
+		}
+	}
+	else
+	{
+		std::cerr << "SDL_Init failed: " << SDL_GetError() << std::endl;
 	}
 
 	if (isRunning)
 	{
+		splashTex = TextureManager::LoadTexture("assets/coverart.png", renderer);
 		butterflyTex = TextureManager::LoadTexture("assets/coins.png", renderer);
 		const int groundY = SCREEN_HEIGHT - GROUND_HEIGHT - SPRITE_SIZE;
 		player = new GameObject("assets/cha11.png", renderer, 0, groundY, 6);
@@ -742,6 +798,8 @@ void Game::init(const char* title, int width, int height, bool fullscreen)
 			}
 		}
 		ResetLevelState(false);
+		splashActive = true;
+		splashFrames = 180;
 	}
 }
 
@@ -758,6 +816,11 @@ void Game::handleEvents()
 			isRunning = false;
 			break;
 		case SDL_KEYDOWN:
+			if (splashActive)
+			{
+				DismissSplash();
+				break;
+			}
 			if (event.key.repeat == 0 && event.key.keysym.sym == SDLK_RETURN)
 			{
 				if (gameOver)
@@ -776,6 +839,12 @@ void Game::handleEvents()
 			break;
 		case SDL_FINGERDOWN:
 		{
+			if (splashActive)
+			{
+				DismissSplash();
+				break;
+			}
+
 			float x = event.tfinger.x;
 			float y = event.tfinger.y;
 			if (y > 0.72f)
@@ -806,6 +875,12 @@ void Game::handleEvents()
 		case SDL_MOUSEBUTTONDOWN:
 			if (event.button.button == SDL_BUTTON_LEFT)
 			{
+				if (splashActive)
+				{
+					DismissSplash();
+					break;
+				}
+
 				float x = (float)event.button.x / (float)SCREEN_WIDTH;
 				float y = (float)event.button.y / (float)SCREEN_HEIGHT;
 				if (y > 0.72f)
@@ -865,6 +940,11 @@ void Game::update()
 		dt = 0.05f;
 	}
 	lastUpdateTicks = nowTicks;
+
+	if (splashActive)
+	{
+		return;
+	}
 
 	if (input.restartPressed && gameOver)
 	{
@@ -1160,6 +1240,29 @@ void Game::update()
 
 void Game::render()
 {
+	if (splashActive)
+	{
+		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+		SDL_RenderClear(renderer);
+
+		if (splashTex)
+		{
+			SDL_Rect splashDst = { 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT };
+			SDL_RenderCopy(renderer, splashTex, nullptr, &splashDst);
+		}
+		else
+		{
+			SDL_Rect splashFallback = { 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT };
+			SDL_SetRenderDrawColor(renderer, 40, 40, 40, 255);
+			SDL_RenderFillRect(renderer, &splashFallback);
+		}
+
+		SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+		DrawText(renderer, SCREEN_WIDTH / 2 - 174, SCREEN_HEIGHT - 96, 4, "PRESS ANY KEY TO START");
+		SDL_RenderPresent(renderer);
+		return;
+	}
+
 	int shakeX = 0;
 	int shakeY = 0;
 	if (shakeFrames > 0 || hitDangerFrames > 0)
@@ -1409,6 +1512,12 @@ void Game::clean()
 	{
 		SDL_DestroyTexture(butterflyTex);
 		butterflyTex = nullptr;
+	}
+
+	if (splashTex)
+	{
+		SDL_DestroyTexture(splashTex);
+		splashTex = nullptr;
 	}
 
 	if (renderer)

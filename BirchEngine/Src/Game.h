@@ -32,13 +32,17 @@ private:
 
 	void ResetInputEdges();
 	void UpdateDirectionalInput();
+	void DismissSplash();
 
 	bool isRunning = false;
 	int cnt = 0;
 	SDL_Window *window;
 	SDL_Renderer *renderer;
+	SDL_Texture *splashTexture = nullptr;
 	InputState input;
 	bool virtualLeftHeld = false;
 	bool virtualRightHeld = false;
 	bool virtualJumpQueued = false;
+	bool splashActive = true;
+	int splashFrames = 180;
 };

@@ -83,3 +83,46 @@ SDL_Texture* TextureManager::LoadTexture(const char* texture, SDL_Renderer* ren)
 
 	return tex;
 }
+
+SDL_Surface* TextureManager::LoadSurface(const char* texture)
+{
+	if (!texture)
+	{
+		return nullptr;
+	}
+
+	std::string requested(texture);
+	std::string fileOnly = BaseName(requested);
+
+	std::vector<std::string> candidates;
+	candidates.push_back(requested);
+	candidates.push_back(JoinPath("assets", fileOnly));
+	candidates.push_back(JoinPath("../assets", fileOnly));
+	candidates.push_back(JoinPath("../../assets", fileOnly));
+	candidates.push_back(JoinPath("BirchEngine/assets", fileOnly));
+
+	char* basePathRaw = SDL_GetBasePath();
+	if (basePathRaw)
+	{
+		std::string basePath(basePathRaw);
+		SDL_free(basePathRaw);
+
+		candidates.push_back(JoinPath(basePath, requested));
+		candidates.push_back(JoinPath(basePath, JoinPath("assets", fileOnly)));
+		candidates.push_back(JoinPath(basePath, JoinPath("../assets", fileOnly)));
+		candidates.push_back(JoinPath(basePath, JoinPath("../../assets", fileOnly)));
+		candidates.push_back(JoinPath(basePath, JoinPath("../BirchEngine/assets", fileOnly)));
+	}
+
+	for (const std::string& path : candidates)
+	{
+		SDL_Surface* surface = IMG_Load(path.c_str());
+		if (surface)
+		{
+			return surface;
+		}
+	}
+
+	std::fprintf(stderr, "TextureManager: failed to load surface '%s' (%s)\n", texture, IMG_GetError());
+	return nullptr;
+}

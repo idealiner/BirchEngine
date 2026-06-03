@@ -1,0 +1,194 @@
+[ 20%] Building CXX object CMakeFiles/birchengine.dir/Src/main.cpp.o
+[ 40%] Building CXX object CMakeFiles/birchengine.dir/Src/Game.cpp.o
+[ 60%] Building CXX object CMakeFiles/birchengine.dir/Src/GameObject.cpp.o
+[ 80%] Building CXX object CMakeFiles/birchengine.dir/Src/TextureManager.cpp.o
+In file included from /home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/main.cpp:1:
+In file included from /home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/Game.h:3:
+In file included from /home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/emsdk/upstream/emscripten/cache/sysroot/include/fakesdl/SDL.h/home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/TextureManager.cpp::1:12:
+:In file included from  /home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/TextureManager.herror: :3"To use the emscripten port of SDL use -sUSE_SDL or -sUSE_SDL=2":
+
+In file included from /home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/Game.h:3:
+/home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/emsdk/upstream/emscripten/cache/sysroot/include/fakesdl/SDL.h:1    :21: |  #error: e"To use the emscripten port of SDL use -sUSE_SDL or -sUSE_SDL=2"r
+roIn file included from r /home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/Game.cpp":T1o u:
+sIn file included from e/home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/Game.h :t    3h1:
+e |  /home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/emsdk/upstream/emscripten/cache/sysroot/include/fakesdl/SDL.h#e:em1rs:rc2or:ri  perror: "tT"To use the emscripten port of SDL use -sUSE_SDL or -sUSE_SDL=2"eo
+n  upsoer tt     h1oe | f # eeSmrDsrLco rrui sp"etT eo-n s uUpsSoeEr _ttS hDoeLf   eoSrDm Ls- csuUsrSeiE _-pSstDULSeEn=_ 2SpD"Lo
+ r      or| t  ^- 
+soUfSE _SSDDLL=2 "u
+      s| e ^ 
+-sUSE_SDL or -sUSE_SDL=2In file included from "/home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/main.cpp
+:      1:
+| In file included from In file included from  ^/home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/Game.h/home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/TextureManager.cpp:
+:41:
+:
+/home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/emsdk/upstream/emscripten/cache/sysroot/include/fakesdl/SDL_image.hIn file included from :/home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/TextureManager.h1:3::
+2In file included from :/home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/Game.h :error: 4"To use the emscripten port of SDL use -sUSE_SDL or -sUSE_SDL=2":
+
+/home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/emsdk/upstream/emscripten/cache/sysroot/include/fakesdl/SDL_image.h:1:    21: |  #error: e"To use the emscripten port of SDL use -sUSE_SDL or -sUSE_SDL=2"r
+ror "    T1o |  #uesrer otrh e" Teo musscer itphtIn file included from ee /home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/Game.cppne :mps1ocrr:
+tiIn file included from  po/home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/Game.htf:e 4nS:
+ DpL/home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/emsdk/upstream/emscripten/cache/sysroot/include/fakesdl/SDL_image.ho :ru1ts e:o 2f-: s SUDSerror: LE"To use the emscripten port of SDL use -sUSE_SDL or -sUSE_SDL=2" _uS
+sDeL  -osrU S-    Es1_USS | DE#L_ SeoDrrLr =o-2rs" U
+S      "E| T_ ^S
+oD Lu=2s"e
+       t|  ^h
+e emscripten port of SDL use -sUSE_SDL or -sUSE_SDL=2"
+      |  ^
+In file included from /home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/GameObject.cpp:1:
+In file included from /home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/GameObject.h:3:
+In file included from /home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/Game.h:3:
+/home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/emsdk/upstream/emscripten/cache/sysroot/include/fakesdl/SDL.h:1:2: error: "To use the emscripten port of SDL use -sUSE_SDL or -sUSE_SDL=2"
+    1 | #error "To use the emscripten port of SDL use -sUSE_SDL or -sUSE_SDL=2"
+      |  ^
+In file included from /home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/GameObject.cpp:1:
+In file included from /home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/GameObject.h:3:
+In file included from /home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/Game.h:4:
+/home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/emsdk/upstream/emscripten/cache/sysroot/include/fakesdl/SDL_image.h:1:2: error: "To use the emscripten port of SDL use -sUSE_SDL or -sUSE_SDL=2"
+    1 | #error "To use the emscripten port of SDL use -sUSE_SDL or -sUSE_SDL=2"
+      |  ^
+In file included from /home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/GameObject.cpp:1:
+In file included from /home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/GameObject.h:3:
+/home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/Game.h:38:2: error: unknown type name 'SDL_Window'
+   38 |         SDL_Window *window;
+      |         ^
+/home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/Game.h:39:2: error: unknown type name 'SDL_Renderer'
+   39 |         SDL_Renderer *renderer;
+      |         ^
+In file included from /home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/Game.cpp:1:
+/home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/Game.h:38:2: error: unknown type name 'SDL_Window'
+   38 |         SDL_Window *window;
+      |         ^
+In file included from /home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/TextureManager.cpp:1:
+In file included from /home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/TextureManager.h:3:
+/home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/Game.h:38:2: error: unknown type name 'SDL_Window'
+   38 |         SDL_Window *window;
+      |         ^
+In file included from /home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/GameObject.cpp:1:
+/home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/GameObject.h:8:39: error: unknown type name 'SDL_Renderer'
+    8 |         GameObject(const char* texturesheet, SDL_Renderer* ren, int x, int y, int frames = 1);
+      |                                              ^
+/home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/Game.h:39:2: error: unknown type name 'SDL_Renderer'
+   39 |         SDL_Renderer *renderer;
+      |         ^
+/home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/Game.h:39:2: error: unknown type name 'SDL_Renderer'
+   39 |         SDL_Renderer *renderer;
+      |         ^
+/home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/GameObject.h:18:2: error: unknown type name 'SDL_Rect'
+   18 |         SDL_Rect GetBounds() const;
+      |         ^
+In file included from /home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/Game.cpp:2:
+/home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/TextureManager.h:8:9: error: unknown type name 'SDL_Texture'
+    8 |         static SDL_Texture* LoadTexture(const char* fileName, SDL_Renderer* ren);
+      |                ^
+In file included from /home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/TextureManager.cpp:1:
+/home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/TextureManager.h:8:9: error: unknown type name 'SDL_Texture'
+    8 |         static SDL_Texture* LoadTexture(const char* fileName, SDL_Renderer* ren);
+      |                ^
+/home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/GameObject.h:19:2: error: unknown type name 'SDL_Rect'
+   19 |         SDL_Rect GetHitbox() const;
+      |         ^
+/home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/TextureManager.h:8:56: error: unknown type name 'SDL_Renderer'
+    8 |         static SDL_Texture* LoadTexture(const char* fileName, SDL_Renderer* ren);
+      |                                                               ^
+/home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/TextureManager.h:8:56: error: unknown type name 'SDL_Renderer'
+    8 |         static SDL_Texture* LoadTexture(const char* fileName, SDL_Renderer* ren);
+      |                                                               ^
+/home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/TextureManager.cpp:3:10: fatal error: 'SDL_filesystem.h' file not found
+    3 | #include "SDL_filesystem.h"
+      |          ^~~~~~~~~~~~~~~~~~
+/home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/GameObject.h:39:2: error: unknown type name 'SDL_Texture'
+   39 |         SDL_Texture* objTexture;
+      |         ^
+In file included from /home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/Game.cpp:3:
+/home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/GameObject.h:8:39: error: unknown type name 'SDL_Renderer'
+    8 |         GameObject(const char* texturesheet, SDL_Renderer* ren, int x, i7n errorst generated .
+y, int frames = 1);
+      |                                              ^
+/home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/GameObject.h:40:2: error: unknown type name 'SDL_Rect'
+   40 |         SDL_Rect srcRect, destRect;
+      |         ^
+/home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/GameObject.h:18:2: error: unknown type name 'SDL_Rect'
+   18 |         SDL_Rect GetBounds() const;
+      |         ^
+gmake[2]: *** [CMakeFiles/birchengine.dir/build.make:118: CMakeFiles/birchengine.dir/Src/TextureManager.cpp.o] Error 1
+gmake[2]: *** Waiting for unfinished jobs....
+/home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/GameObject.h:41:2: error: unknown type name 'SDL_Renderer'
+   41 |         SDL_Renderer* renderer;
+      |         ^
+/home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/GameObject.h:19:2: error: unknown type name 'SDL_Rect'
+   19 |         SDL_Rect GetHitbox() const;
+      |         ^
+In file included from /home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/GameObject.cpp:2:
+/home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/TextureManager.h:8:9: error: unknown type name 'SDL_Texture'
+    8 |         static SDL_Texture* LoadTexture(const char* fileName, SDL_Renderer* ren);
+      |                ^
+/home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/GameObject.h:39:2: error: unknown type name 'SDL_Texture'
+   39 |         SDL_Texture* objTexture;
+      |         ^
+/home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/GameObject.h:40/home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/TextureManager.h::28:: 56error: :unknown type name 'SDL_Rect' 
+error: unknown type name 'SDL_Renderer'
+   40 |             S8D | L        _sRteactti cs rScDRLe_cTte,x tduerset*R eLcota;d
+T      e| x        ^t
+ure(const char* fileName, SDL_Renderer* ren);
+      |                                                               ^
+In file included from /home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/main.cpp:1:
+/home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/Game.h:38:2: error: unknown type name 'SDL_Window'
+   38 |         SDL_Window *window;
+      |         ^
+/home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/GameObject.cpp:4:/home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/GameObject.h50:: 41error: :unknown type name 'SDL_Renderer'2
+: error: unknown type name 'SDL_Renderer'
+    4    | 41G | a        mSeDOLb_jReecntd:e:rGearm*e Orbejnedcetr(ecro;n
+s      t|          ^c
+har* texturesheet, SDL_Renderer* ren, int x, int y, int frames)
+      |                                                  ^
+/home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/Game.h:39:2: error: unknown type name 'SDL_Renderer'
+   39 |         SDL_Renderer *renderer;
+      |         ^
+/home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/Game.cpp:17:1: error: unknown type name 'SDL_Rect'
+   17 | SDL_Rect prevPlayerRect = { 0, 0, 0, 0 };
+      | ^
+/home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/GameObject.cpp:142:1: error: unknown type name 'SDL_Rect'
+  142 | SDL_Rect GameObject::GetBounds() const
+      | ^
+/home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/Game.cpp:19:1: error: unknown type name 'Uint32'
+   19 | Uint32 gameStartTicks = 0;
+      | ^
+/home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/GameObject.cpp:147:1: error: unknown type name 'SDL_Rect'
+  147 | SDL_Rect GameObject::GetHitbox() const
+      | ^
+/home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/Game.cpp:25:1: error: unknown type name 'SDL_Texture'
+   25 | SDL_Texture* butterflyTex = nullptr;
+      | ^
+/home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/GameObject.cpp:150:2: error: unknown type name 'SDL_Rect'
+  150 |         SDL_Rect hb;
+      |         ^
+/home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/Game.cpp:51:1: error: unknown type name 'Uint32'
+   51 | Uint32 lastUpdateTicks = 0;
+      | ^
+/home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/GameObject.cpp:162:3: error: unknown type name 'SDL_RendererFlip'
+  162 |                 SDL_RendererFlip flip = facingLeft ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
+      |                 ^
+/home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/Game.cpp:69:8: error: unknown type name 'SDL_AudioDeviceID'
+   69 | static SDL_AudioDeviceID audioDevice = 0;
+      |        ^
+/home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/GameObject.cpp:162:40: error: use of undeclared identifier 'SDL_FLIP_HORIZONTAL'
+  162 |                 SDL_RendererFlip flip = facingLeft ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
+      |                                                      ^~~~~~~~~~~~~~~~~~~
+/home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/Game.cpp:138:43: error: unknown type name 'Uint8'
+  138 | static void AudioCallback(void* userdata, Uint8* stream, int len);
+      |                                           ^
+/home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/GameObject.cpp:162:62: error: use of undeclared identifier 'SDL_FLIP_NONE'
+  162 |                 SDL_RendererFlip flip = facingLeft ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
+      |                                                                            ^~~~~~~~~~~~~
+/home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/Game.cpp:171:31: error: unknown type name 'SDL_Renderer'
+  171 | static void DrawButterflyIcon(SDL_Renderer* renderer, int x, int y, int p)
+      |                               ^
+fatal error: too many errors emitted, stopping now [-ferror-limit=]
+20 errors generated.
+4 errors generated.
+gmake[2]: *** [CMakeFiles/birchengine.dir/build.make:90: CMakeFiles/birchengine.dir/Src/Game.cpp.o] Error 1
+gmake[2]: *** [CMakeFiles/birchengine.dir/build.make:76: CMakeFiles/birchengine.dir/Src/main.cpp.o] Error 1
+19 errors generated.
+gmake[2]: *** [CMakeFiles/birchengine.dir/build.make:104: CMakeFiles/birchengine.dir/Src/GameObject.cpp.o] Error 1
+gmake[1]: *** [CMakeFiles/Makefile2:83: CMakeFiles/birchengine.dir/all] Error 2
+gmake: *** [Makefile:91: all] Error 2

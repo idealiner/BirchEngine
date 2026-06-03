@@ -30,10 +30,15 @@ endif()
 
 if (BIRCHENGINE_IS_WEB)
     target_compile_definitions(birchengine PRIVATE BIRCHENGINE_WEB=1)
+    target_compile_options(birchengine PRIVATE
+        "SHELL:-sUSE_SDL=2"
+        "SHELL:-sUSE_SDL_IMAGE=2"
+        "SHELL:-sSDL2_IMAGE_FORMATS=['png']"
+    )
     set_target_properties(birchengine PROPERTIES SUFFIX ".html")
     target_link_options(birchengine PRIVATE
-        "SHELL:-s USE_SDL=2"
-        "SHELL:-s USE_SDL_IMAGE=2"
+        "SHELL:-sUSE_SDL=2"
+        "SHELL:-sUSE_SDL_IMAGE=2"
         "SHELL:-s SDL2_IMAGE_FORMATS=['png']"
         "SHELL:--preload-file ${CMAKE_SOURCE_DIR}/assets@/assets"
         "SHELL:-s ALLOW_MEMORY_GROWTH=1"

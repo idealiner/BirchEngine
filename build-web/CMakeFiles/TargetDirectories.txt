@@ -1,0 +1,3 @@
+/home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/build-web/CMakeFiles/birchengine.dir
+/home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/build-web/CMakeFiles/edit_cache.dir
+/home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/build-web/CMakeFiles/rebuild_cache.dir
