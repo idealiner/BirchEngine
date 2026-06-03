@@ -18,6 +18,7 @@ GameObject::GameObject(const char* texturesheet, SDL_Renderer* ren, int x, int y
 	jumpVel  = 0.0f;
 	onGround = true;
 	groundY  = 0;
+	facingLeft = false;
 }
 
 GameObject::~GameObject()
@@ -32,6 +33,15 @@ GameObject::~GameObject()
 void GameObject::Update()
 {
 	xpos += xvel;
+
+	if (xvel < 0)
+	{
+		facingLeft = true;
+	}
+	else if (xvel > 0)
+	{
+		facingLeft = false;
+	}
 
 	// physics-based vertical when groundY is set
 	if (groundY > 0)
@@ -108,10 +118,22 @@ void GameObject::Jump()
 	}
 }
 
+void GameObject::SetPosition(int x, int y)
+{
+	xpos = x;
+	ypos = y;
+}
+
+SDL_Rect GameObject::GetBounds() const
+{
+	return destRect;
+}
+
 void GameObject::Render()
 {
 	if (objTexture)
 	{
-		SDL_RenderCopy(renderer, objTexture, &srcRect, &destRect);
+		SDL_RendererFlip flip = facingLeft ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
+		SDL_RenderCopyEx(renderer, objTexture, &srcRect, &destRect, 0.0, NULL, flip);
 	}
 }

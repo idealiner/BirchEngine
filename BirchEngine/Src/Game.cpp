@@ -7,6 +7,7 @@ SDL_Rect srcR, destR;*/
 
 GameObject* player;
 GameObject* enemy;
+int playerFlickerFrames = 0;
 
 Game::Game()
 {}
@@ -48,9 +49,9 @@ void Game::init(const char* title, int width, int height, bool fullscreen)
 	if (isRunning)
 	{
 		const int groundY = 768 - 120 - 150;
-		player = new GameObject("assets/megaman1.png", renderer, 0, groundY, 8);
+		player = new GameObject("assets/cha11.png", renderer, 0, groundY, 6);
 		player->SetGroundY(groundY);
-		enemy = new GameObject("assets/enemy.png", renderer, 500, groundY);
+		enemy = new GameObject("assets/arche.png", renderer, 1024 + 120, groundY, 6);
 		enemy->SetGroundY(groundY);
 	}
 }
@@ -114,8 +115,32 @@ void Game::update()
 		player->Update();
 	}
 
-	if (enemy) enemy->SetVelocity(1, 0);
-	if (enemy) enemy->Update();
+	if (enemy)
+	{
+		enemy->SetVelocity(-2, 0);
+		enemy->Update();
+
+		SDL_Rect enemyRect = enemy->GetBounds();
+		if (enemyRect.x + enemyRect.w < 0)
+		{
+			enemy->SetPosition(1024 + 120, 768 - 120 - 150);
+		}
+	}
+
+	if (player && enemy)
+	{
+		SDL_Rect playerRect = player->GetBounds();
+		SDL_Rect enemyRect  = enemy->GetBounds();
+		if (SDL_HasIntersection(&playerRect, &enemyRect) && playerFlickerFrames == 0)
+		{
+			playerFlickerFrames = 60;
+		}
+	}
+
+	if (playerFlickerFrames > 0)
+	{
+		playerFlickerFrames--;
+	}
 }
 
 void Game::render()
@@ -135,7 +160,13 @@ void Game::render()
 	SDL_RenderFillRect(renderer, &dirt);
 
 	//SDL_RenderCopy(renderer, playerTex, NULL, &destR);
-	if (player) player->Render();
+	if (player)
+	{
+		if (playerFlickerFrames == 0 || ((playerFlickerFrames / 4) % 2 == 0))
+		{
+			player->Render();
+		}
+	}
 	if (enemy) enemy->Render();
 	SDL_RenderPresent(renderer);
 }

@@ -1,0 +1,1 @@
+/usr/bin/g++ -g CMakeFiles/birchengine.dir/Src/main.cpp.o CMakeFiles/birchengine.dir/Src/Game.cpp.o CMakeFiles/birchengine.dir/Src/GameObject.cpp.o CMakeFiles/birchengine.dir/Src/TextureManager.cpp.o -o birchengine  /usr/lib/x86_64-linux-gnu/libSDL2_image.so /usr/lib/x86_64-linux-gnu/libSDL2.so 

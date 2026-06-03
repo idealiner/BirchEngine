@@ -13,6 +13,8 @@ public:
 	void SetVelocity(int x, int y);
 	void SetGroundY(int gy);
 	void Jump();
+	void SetPosition(int x, int y);
+	SDL_Rect GetBounds() const;
 
 private:
 
@@ -24,6 +26,7 @@ private:
 	float jumpVel;
 	bool  onGround;
 	int   groundY;
+	bool  facingLeft;
 
 	int frameCount;
 	int currentFrame;
