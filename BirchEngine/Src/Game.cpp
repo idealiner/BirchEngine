@@ -49,6 +49,9 @@ Uint32 lastUpdateTicks = 0;
 float gameClockSeconds = 0.0f;
 int elapsedSeconds = 0;
 int currentTimeLeft = 0;
+bool enemyActive = true;
+int enemyRespawnFrames = 0;
+int hitDangerFrames = 0;
 
 static const int SCREEN_WIDTH = 1024;
 static const int SCREEN_HEIGHT = 768;
@@ -283,6 +286,9 @@ void Game::init(const char* title, int width, int height, bool fullscreen)
 		gameClockSeconds = 0.0f;
 		elapsedSeconds = 0;
 		currentTimeLeft = LEVEL_TIME_SECONDS;
+		enemyActive = true;
+		enemyRespawnFrames = 0;
+		hitDangerFrames = 0;
 		ResetButterflyFlight();
 		prevEnemyX = SCREEN_WIDTH + 120;
 	}
@@ -352,10 +358,10 @@ void Game::update()
 	}
 
 	float progress = 1.0f - ((float)currentTimeLeft / (float)LEVEL_TIME_SECONDS);
-	enemySpeed = 2 + (int)std::floor(progress * 2.5f);
-	if (enemySpeed > 5)
+	enemySpeed = 2 + (int)std::floor(progress * 5.0f);
+	if (enemySpeed > 8)
 	{
-		enemySpeed = 5;
+		enemySpeed = 8;
 	}
 	butterflySpeed = 3.0f + 3.0f * progress;
 
@@ -392,7 +398,7 @@ void Game::update()
 		player->Update();
 	}
 
-	if (enemy)
+	if (enemy && enemyActive)
 	{
 		prevEnemyX = enemy->GetBounds().x;
 		enemy->SetVelocity(-enemySpeed, 0);
@@ -400,13 +406,27 @@ void Game::update()
 		SDL_Rect enemyRect = enemy->GetBounds();
 		if (enemyRect.x + enemyRect.w < 0)
 		{
-			enemy->SetPosition(SCREEN_WIDTH + 120, SCREEN_HEIGHT - GROUND_HEIGHT - SPRITE_SIZE);
+			enemyActive = false;
+			enemyRespawnFrames = std::max(8, 45 - (int)std::floor(progress * 30.0f));
 			enemyFlickerFrames = 0;
 			nearMissAwarded = false;
 		}
 	}
+	else if (enemy && !enemyActive)
+	{
+		if (enemyRespawnFrames > 0)
+		{
+			enemyRespawnFrames--;
+		}
+		else
+		{
+			int spawnOffset = std::max(40, 220 - (int)std::floor(progress * 170.0f));
+			enemy->SetPosition(SCREEN_WIDTH + spawnOffset, SCREEN_HEIGHT - GROUND_HEIGHT - SPRITE_SIZE);
+			enemyActive = true;
+		}
+	}
 
-	if (player && enemy && enemyFlickerFrames == 0)
+	if (player && enemy && enemyActive && enemyFlickerFrames == 0)
 	{
 		SDL_Rect playerRect = player->GetHitbox();
 		SDL_Rect enemyRect = enemy->GetHitbox();
@@ -434,11 +454,12 @@ void Game::update()
 				butterflyCapturedCount = std::max(0, butterflyCapturedCount - 1);
 				comboChain = 0;
 				shakeFrames = 14;
+				hitDangerFrames = 22;
 			}
 		}
 	}
 
-	if (player && enemy && !nearMissAwarded)
+	if (player && enemy && enemyActive && !nearMissAwarded)
 	{
 		SDL_Rect playerRect = player->GetHitbox();
 		SDL_Rect enemyRect = enemy->GetHitbox();
@@ -459,6 +480,7 @@ void Game::update()
 	if (playerFlickerFrames > 0) playerFlickerFrames--;
 	if (enemyFlickerFrames > 0) enemyFlickerFrames--;
 	if (playerInvulnFrames > 0) playerInvulnFrames--;
+	if (hitDangerFrames > 0) hitDangerFrames--;
 
 	if (butterflyActive)
 	{
@@ -529,11 +551,16 @@ void Game::render()
 {
 	int shakeX = 0;
 	int shakeY = 0;
-	if (shakeFrames > 0)
+	if (shakeFrames > 0 || hitDangerFrames > 0)
 	{
-		shakeFrames--;
-		shakeX = ((SDL_GetTicks() / 17) % 3) - 1;
-		shakeY = ((SDL_GetTicks() / 23) % 3) - 1;
+		if (shakeFrames > 0)
+		{
+			shakeFrames--;
+		}
+
+		int amp = (hitDangerFrames > 0) ? 8 : 2;
+		shakeX = ((SDL_GetTicks() / 11) % (amp * 2 + 1)) - amp;
+		shakeY = ((SDL_GetTicks() / 13) % (amp * 2 + 1)) - amp;
 	}
 
 	if (currentTimeLeft <= 30)
@@ -646,12 +673,28 @@ void Game::render()
 		}
 	}
 
-	if (enemy)
+	if (enemy && enemyActive)
 	{
 		if (enemyFlickerFrames == 0 || ((enemyFlickerFrames / 4) % 2 == 0))
 		{
 			enemy->Render();
 		}
+	}
+
+	if (hitDangerFrames > 0)
+	{
+		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+		if (((hitDangerFrames / 2) % 2) == 0)
+		{
+			SDL_SetRenderDrawColor(renderer, 220, 24, 24, 120);
+		}
+		else
+		{
+			SDL_SetRenderDrawColor(renderer, 0, 0, 0, 140);
+		}
+		SDL_Rect dangerOverlay = { 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT };
+		SDL_RenderFillRect(renderer, &dangerOverlay);
+		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
 	}
 
 	if (isPaused)
