@@ -1,3 +1,0 @@
-/home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/build-web/CMakeFiles/PrincessOwliviaCB.dir
-/home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/build-web/CMakeFiles/edit_cache.dir
-/home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/build-web/CMakeFiles/rebuild_cache.dir
