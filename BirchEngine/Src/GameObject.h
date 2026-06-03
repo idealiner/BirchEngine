@@ -13,6 +13,7 @@ public:
 	void SetVelocity(int x, int y);
 	void SetGroundY(int gy);
 	void Jump();
+	void StompBounce();
 	void SetPosition(int x, int y);
 	SDL_Rect GetBounds() const;
 	SDL_Rect GetHitbox() const;

@@ -8,6 +8,8 @@ SDL_Rect srcR, destR;*/
 GameObject* player;
 GameObject* enemy;
 int playerFlickerFrames = 0;
+int enemyFlickerFrames = 0;
+SDL_Rect prevPlayerRect = { 0, 0, 0, 0 };
 
 Game::Game()
 {}
@@ -111,6 +113,7 @@ void Game::update()
 
 	if (player)
 	{
+		prevPlayerRect = player->GetHitbox();
 		player->SetVelocity(playerVelX, playerVelY);
 		player->Update();
 	}
@@ -124,22 +127,39 @@ void Game::update()
 		if (enemyRect.x + enemyRect.w < 0)
 		{
 			enemy->SetPosition(1024 + 120, 768 - 120 - 150);
+			enemyFlickerFrames = 0;
 		}
 	}
 
-	if (player && enemy)
+	if (player && enemy && enemyFlickerFrames == 0)
 	{
 		SDL_Rect playerRect = player->GetHitbox();
 		SDL_Rect enemyRect  = enemy->GetHitbox();
-		if (SDL_HasIntersection(&playerRect, &enemyRect) && playerFlickerFrames == 0)
+		if (SDL_HasIntersection(&playerRect, &enemyRect))
 		{
-			playerFlickerFrames = 60;
+			const bool descending = playerRect.y > prevPlayerRect.y;
+			const bool fromAbove = (prevPlayerRect.y + prevPlayerRect.h) <= (enemyRect.y + 8);
+
+			if (descending && fromAbove)
+			{
+				enemyFlickerFrames = 40;
+				player->StompBounce();
+			}
+			else if (playerFlickerFrames == 0)
+			{
+				playerFlickerFrames = 60;
+			}
 		}
 	}
 
 	if (playerFlickerFrames > 0)
 	{
 		playerFlickerFrames--;
+	}
+
+	if (enemyFlickerFrames > 0)
+	{
+		enemyFlickerFrames--;
 	}
 }
 
@@ -167,7 +187,15 @@ void Game::render()
 			player->Render();
 		}
 	}
-	if (enemy) enemy->Render();
+
+	if (enemy)
+	{
+		if (enemyFlickerFrames == 0 || ((enemyFlickerFrames / 4) % 2 == 0))
+		{
+			enemy->Render();
+		}
+	}
+
 	SDL_RenderPresent(renderer);
 }
 

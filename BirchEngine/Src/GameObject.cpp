@@ -126,6 +126,13 @@ void GameObject::Jump()
 	}
 }
 
+void GameObject::StompBounce()
+{
+	jumpVel = -10.5f;
+	onGround = false;
+	canDoubleJump = true;
+}
+
 void GameObject::SetPosition(int x, int y)
 {
 	xpos = x;
@@ -139,7 +146,7 @@ SDL_Rect GameObject::GetBounds() const
 
 SDL_Rect GameObject::GetHitbox() const
 {
-	// 30px inset horizontally, 20px top, 10px bottom — tight body box
+	// 30px inset horizontally, 20px top, 10px bottom - tight body box
 	SDL_Rect hb;
 	hb.x = destRect.x + 30;
 	hb.y = destRect.y + 20;
