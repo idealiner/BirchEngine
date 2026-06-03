@@ -62,6 +62,7 @@ int levelClearFrames = 0;
 int levelRestartFrames = 0;
 int stompImpactFrames = 0;
 int butterflyWinFrames = 0;
+bool gameOver = false;
 
 static const int AUDIO_SAMPLE_RATE = 44100;
 static const int AUDIO_VOICES = 16;
@@ -132,6 +133,7 @@ static void PlayStompSfx();
 static void PlayButterflyCaptureSfx();
 static void PlayEnemyHitSfx();
 static void PlayWinSfx();
+static void PlayGameOverSfx();
 static void ResetLevelState(bool incrementLevel);
 static void AudioCallback(void* userdata, Uint8* stream, int len);
 
@@ -319,6 +321,14 @@ static void PlayWinSfx()
 	PlayTone(1318.5, 160, 0.60, 0, 1.0);
 }
 
+static void PlayGameOverSfx()
+{
+	PlayTone(392.0, 100, 0.46, 1, 1.0);
+	PlayTone(329.63, 120, 0.48, 1, 1.0);
+	PlayTone(261.63, 180, 0.52, 1, 1.0);
+	PlayTone(164.81, 240, 0.58, 2, 1.0);
+}
+
 static void ResetLevelState(bool incrementLevel)
 {
 	if (incrementLevel)
@@ -355,6 +365,7 @@ static void ResetLevelState(bool incrementLevel)
 	levelCleared = false;
 	levelClearFrames = 0;
 	levelRestartFrames = 0;
+	gameOver = false;
 	levelTransitionActive = false;
 	currentTimeLeft = LEVEL_TIME_SECONDS;
 	gameClockSeconds = 0.0f;
@@ -732,12 +743,16 @@ void Game::handleEvents()
 		case SDL_KEYDOWN:
 			if (event.key.repeat == 0 && event.key.keysym.sym == SDLK_RETURN)
 			{
-				if (!levelCleared)
+				if (gameOver)
+				{
+					ResetLevelState(false);
+				}
+				else if (!levelCleared)
 				{
 					isPaused = !isPaused;
 				}
 			}
-			if (!isPaused && !levelCleared && event.key.keysym.sym == SDLK_SPACE && player)
+			if (!isPaused && !levelCleared && !gameOver && event.key.keysym.sym == SDLK_SPACE && player)
 			{
 				player->Jump();
 			}
@@ -791,6 +806,11 @@ void Game::update()
 		return;
 	}
 
+	if (gameOver)
+	{
+		return;
+	}
+
 	if (freezeFrames > 0)
 	{
 		freezeFrames--;
@@ -803,6 +823,15 @@ void Game::update()
 	if (currentTimeLeft < 0)
 	{
 		currentTimeLeft = 0;
+	}
+	if (currentTimeLeft == 0)
+	{
+		gameOver = true;
+		isPaused = false;
+		musicTrackMode = 2;
+		musicSamplesLeft = 0;
+		PlayGameOverSfx();
+		return;
 	}
 
 	float progress = 1.0f - ((float)currentTimeLeft / (float)LEVEL_TIME_SECONDS);
@@ -1243,6 +1272,19 @@ void Game::render()
 		SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 		DrawText(renderer, SCREEN_WIDTH / 2 - 168, SCREEN_HEIGHT / 2 + 16, 4, "NEXT STAGE LOADING");
 		DrawText(renderer, SCREEN_WIDTH / 2 - 120, SCREEN_HEIGHT / 2 + 58, 3, "PRESS ENTER TO PAUSE");
+		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
+	}
+	else if (gameOver)
+	{
+		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+		SDL_SetRenderDrawColor(renderer, 20, 0, 0, 190);
+		SDL_Rect gameOverShade = { 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT };
+		SDL_RenderFillRect(renderer, &gameOverShade);
+		SDL_SetRenderDrawColor(renderer, 255, 84, 84, 255);
+		DrawText(renderer, SCREEN_WIDTH / 2 - 132, SCREEN_HEIGHT / 2 - 40, 5, "GAME OVER");
+		SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+		DrawText(renderer, SCREEN_WIDTH / 2 - 168, SCREEN_HEIGHT / 2 + 18, 4, "TIME UP TRY AGAIN");
+		DrawText(renderer, SCREEN_WIDTH / 2 - 192, SCREEN_HEIGHT / 2 + 62, 3, "PRESS ENTER TO RESTART");
 		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
 	}
 
