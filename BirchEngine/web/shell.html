@@ -56,6 +56,37 @@
       border-top: 1px solid #334155;
     }
 
+    .hud {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      border-top: 1px solid #334155;
+      padding: 8px 10px;
+    }
+
+    #status {
+      border-top: 0;
+      padding: 0;
+      margin: 0;
+      min-height: 20px;
+    }
+
+    #fullscreenBtn {
+      border: 1px solid #475569;
+      background: #1f2937;
+      color: #e2e8f0;
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
+    #fullscreenBtn:hover {
+      border-color: #64748b;
+      background: #243244;
+    }
+
     #status.ready {
       color: var(--accent);
     }
@@ -65,12 +96,51 @@
   <div class="layout">
     <div class="frame">
       <canvas id="canvas" oncontextmenu="event.preventDefault()" tabindex="-1"></canvas>
-      <div id="status">Loading PrincessOwliviaCB...</div>
+      <div class="hud">
+        <div id="status">Loading PrincessOwliviaCB...</div>
+        <button id="fullscreenBtn" type="button">Fullscreen</button>
+      </div>
     </div>
   </div>
 
   <script>
     var statusElement = document.getElementById('status');
+    var fullscreenButton = document.getElementById('fullscreenBtn');
+
+    function setFullscreenButtonLabel() {
+      if (!fullscreenButton) return;
+      fullscreenButton.textContent = document.fullscreenElement ? 'Exit Fullscreen' : 'Fullscreen';
+    }
+
+    async function toggleFullscreen() {
+      try {
+        if (document.fullscreenElement) {
+          await document.exitFullscreen();
+          setFullscreenButtonLabel();
+          return;
+        }
+
+        if (Module && typeof Module.requestFullscreen === 'function') {
+          Module.requestFullscreen(false, true);
+        } else {
+          var canvas = document.getElementById('canvas');
+          if (canvas && canvas.requestFullscreen) {
+            await canvas.requestFullscreen();
+          }
+        }
+        setFullscreenButtonLabel();
+      } catch (err) {
+        console.error('Fullscreen failed', err);
+        if (statusElement) {
+          statusElement.textContent = 'Fullscreen blocked by browser. Click canvas then try again.';
+        }
+      }
+    }
+
+    if (fullscreenButton) {
+      fullscreenButton.addEventListener('click', toggleFullscreen);
+    }
+    document.addEventListener('fullscreenchange', setFullscreenButtonLabel);
 
     var Module = {
       preRun: [],
