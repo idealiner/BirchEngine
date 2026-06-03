@@ -58,6 +58,8 @@ int levelNumber = 1;
 bool levelCleared = false;
 int levelClearFrames = 0;
 int levelRestartFrames = 0;
+int stompImpactFrames = 0;
+int butterflyWinFrames = 0;
 
 static const int AUDIO_SAMPLE_RATE = 44100;
 static const int AUDIO_VOICES = 16;
@@ -85,22 +87,22 @@ struct MusicNote
 
 static std::array<SynthVoice, AUDIO_VOICES> audioVoices;
 static const std::array<MusicNote, 16> MUSIC_PATTERN = {
-	MusicNote{ 392.0, 10 * AUDIO_SAMPLE_RATE / 8, 0, 0.06 },
-	MusicNote{ 494.0, 10 * AUDIO_SAMPLE_RATE / 8, 0, 0.06 },
-	MusicNote{ 587.0, 10 * AUDIO_SAMPLE_RATE / 8, 0, 0.06 },
-	MusicNote{ 523.0, 10 * AUDIO_SAMPLE_RATE / 8, 0, 0.06 },
-	MusicNote{ 440.0, 10 * AUDIO_SAMPLE_RATE / 8, 0, 0.06 },
-	MusicNote{ 587.0, 10 * AUDIO_SAMPLE_RATE / 8, 0, 0.06 },
-	MusicNote{ 659.0, 10 * AUDIO_SAMPLE_RATE / 8, 0, 0.06 },
-	MusicNote{ 784.0, 10 * AUDIO_SAMPLE_RATE / 8, 0, 0.06 },
-	MusicNote{ 659.0, 10 * AUDIO_SAMPLE_RATE / 8, 0, 0.06 },
-	MusicNote{ 587.0, 10 * AUDIO_SAMPLE_RATE / 8, 0, 0.06 },
-	MusicNote{ 523.0, 10 * AUDIO_SAMPLE_RATE / 8, 0, 0.06 },
-	MusicNote{ 494.0, 10 * AUDIO_SAMPLE_RATE / 8, 0, 0.06 },
-	MusicNote{ 440.0, 10 * AUDIO_SAMPLE_RATE / 8, 0, 0.06 },
-	MusicNote{ 392.0, 10 * AUDIO_SAMPLE_RATE / 8, 0, 0.06 },
-	MusicNote{ 330.0, 10 * AUDIO_SAMPLE_RATE / 8, 0, 0.06 },
-	MusicNote{ 392.0, 20 * AUDIO_SAMPLE_RATE / 8, 0, 0.06 }
+	MusicNote{ 392.0, 180, 0, 0.035 },
+	MusicNote{ 440.0, 180, 0, 0.035 },
+	MusicNote{ 523.25, 180, 0, 0.035 },
+	MusicNote{ 587.33, 180, 0, 0.035 },
+	MusicNote{ 659.25, 180, 0, 0.035 },
+	MusicNote{ 587.33, 180, 0, 0.035 },
+	MusicNote{ 523.25, 180, 0, 0.035 },
+	MusicNote{ 494.0, 180, 0, 0.035 },
+	MusicNote{ 440.0, 180, 0, 0.035 },
+	MusicNote{ 392.0, 180, 0, 0.035 },
+	MusicNote{ 523.25, 180, 0, 0.035 },
+	MusicNote{ 587.33, 180, 0, 0.035 },
+	MusicNote{ 659.25, 180, 0, 0.035 },
+	MusicNote{ 783.99, 180, 0, 0.035 },
+	MusicNote{ 659.25, 180, 0, 0.035 },
+	MusicNote{ 587.33, 240, 0, 0.035 }
 };
 static int musicPatternIndex = 0;
 static int musicSamplesLeft = 0;
@@ -206,10 +208,12 @@ static void StartMusicNote()
 	}
 
 	const MusicNote& note = MUSIC_PATTERN[(size_t)musicPatternIndex];
+	float pressure = 1.0f - ((float)std::max(0, currentTimeLeft) / (float)LEVEL_TIME_SECONDS);
+	float tempoScale = 1.0f + pressure * 0.85f;
 	musicFrequency = note.frequency;
 	musicWaveform = note.waveform;
 	musicVolume = note.volume;
-	musicSamplesLeft = note.duration;
+	musicSamplesLeft = std::max(1, (int)((note.duration * AUDIO_SAMPLE_RATE / 1000.0) / tempoScale));
 	musicPhase = 0.0;
 	musicPatternIndex = (musicPatternIndex + 1) % (int)MUSIC_PATTERN.size();
 }
@@ -242,29 +246,32 @@ static void PlayTone(double frequency, int durationMs, double volume, int wavefo
 
 static void PlayStompSfx()
 {
-	PlayTone(880.0, 80, 0.12, 0, 0.9);
-	PlayTone(660.0, 90, 0.10, 1, 0.92);
+	PlayTone(880.0, 40, 0.95, 0, 1.0);
+	PlayTone(220.0, 120, 0.80, 0, 1.0);
+	PlayTone(110.0, 160, 0.60, 3, 1.0);
 }
 
 static void PlayButterflyCaptureSfx()
 {
-	PlayTone(523.25, 70, 0.09, 2, 0.93);
-	PlayTone(659.25, 70, 0.09, 2, 0.93);
-	PlayTone(783.99, 90, 0.10, 0, 0.94);
+	PlayTone(784.0, 50, 0.65, 0, 1.0);
+	PlayTone(988.0, 55, 0.70, 0, 1.0);
+	PlayTone(1318.5, 70, 0.78, 0, 1.0);
 }
 
 static void PlayEnemyHitSfx()
 {
-	PlayTone(220.0, 110, 0.12, 3, 0.85);
-	PlayTone(146.0, 120, 0.11, 0, 0.90);
+	PlayTone(196.0, 45, 0.80, 3, 1.0);
+	PlayTone(164.0, 45, 0.80, 3, 1.0);
+	PlayTone(130.0, 45, 0.80, 3, 1.0);
+	PlayTone(98.0, 120, 0.65, 3, 1.0);
 }
 
 static void PlayWinSfx()
 {
-	PlayTone(523.25, 110, 0.10, 0, 0.95);
-	PlayTone(659.25, 110, 0.10, 0, 0.95);
-	PlayTone(783.99, 110, 0.10, 0, 0.95);
-	PlayTone(1046.5, 180, 0.10, 0, 0.96);
+	PlayTone(523.25, 90, 0.55, 0, 1.0);
+	PlayTone(659.25, 90, 0.55, 0, 1.0);
+	PlayTone(783.99, 100, 0.60, 0, 1.0);
+	PlayTone(1046.5, 160, 0.70, 0, 1.0);
 }
 
 static void ResetLevelState(bool incrementLevel)
@@ -286,6 +293,8 @@ static void ResetLevelState(bool incrementLevel)
 	enemyFlickerFrames = 0;
 	playerInvulnFrames = 0;
 	butterflyFxFrames = 0;
+	stompImpactFrames = 0;
+	butterflyWinFrames = 0;
 	floatingScoreFrames = 0;
 	floatingScoreValue = 0;
 	isPaused = false;
@@ -306,6 +315,9 @@ static void ResetLevelState(bool incrementLevel)
 	treeParallaxX = 0.0f;
 	butterflyRespawnFrames = 0;
 	ResetButterflyFlight();
+	musicPatternIndex = 0;
+	musicSamplesLeft = 0;
+	musicPhase = 0.0;
 	if (enemy)
 	{
 		enemyActive = true;
@@ -320,9 +332,6 @@ static void ResetLevelState(bool incrementLevel)
 	if (audioDevice != 0)
 	{
 		SDL_LockAudioDevice(audioDevice);
-		musicPatternIndex = 0;
-		musicSamplesLeft = 0;
-		musicPhase = 0.0;
 		SDL_UnlockAudioDevice(audioDevice);
 	}
 }
@@ -331,8 +340,8 @@ static void AudioCallback(void* userdata, Uint8* stream, int len)
 {
 	(void)userdata;
 	std::memset(stream, 0, len);
-	int16_t* out = reinterpret_cast<int16_t*>(stream);
-	int samples = len / sizeof(int16_t);
+	float* out = reinterpret_cast<float*>(stream);
+	int samples = len / sizeof(float);
 
 	for (int i = 0; i < samples; ++i)
 	{
@@ -358,6 +367,7 @@ static void AudioCallback(void* userdata, Uint8* stream, int len)
 			case 0: musicSample = (musicPhase < 0.5) ? 1.0 : -1.0; break;
 			case 1: musicSample = (musicPhase < 0.5) ? (musicPhase * 4.0 - 1.0) : (3.0 - musicPhase * 4.0); break;
 			case 2: musicSample = 2.0 * std::fabs(2.0 * musicPhase - 1.0) - 1.0; break;
+			case 3: musicSample = (((int)(musicPhase * 16.0)) & 1) ? 1.0 : -1.0; break;
 			default: musicSample = (musicPhase < 0.5) ? 1.0 : -1.0; break;
 			}
 			mixed += musicSample * musicVolume;
@@ -392,15 +402,14 @@ static void AudioCallback(void* userdata, Uint8* stream, int len)
 			double envelope = std::max(0.0, life * voice.volume);
 			mixed += sample * envelope;
 			voice.remaining--;
-			voice.volume *= voice.decay;
-			if (voice.remaining <= 0 || voice.volume < 0.002)
+			if (voice.remaining <= 0)
 			{
 				voice.active = false;
 			}
 		}
 
 		mixed = std::clamp(mixed, -1.0, 1.0);
-		out[i] = (int16_t)(mixed * 12000.0);
+		out[i] = (float)mixed;
 	}
 }
 
@@ -438,15 +447,22 @@ static void DrawGlyph(SDL_Renderer* renderer, int x, int y, int scale, char ch)
 	static const char* G8[7] = { "11111", "10001", "10001", "11111", "10001", "10001", "11111" };
 	static const char* G9[7] = { "11111", "10001", "10001", "11111", "00001", "00001", "11111" };
 	static const char* GA[7] = { "01110", "10001", "10001", "11111", "10001", "10001", "10001" };
+	static const char* GD[7] = { "11110", "10001", "10001", "10001", "10001", "10001", "11110" };
 	static const char* GC[7] = { "01111", "10000", "10000", "10000", "10000", "10000", "01111" };
 	static const char* GE[7] = { "11111", "10000", "10000", "11110", "10000", "10000", "11111" };
+	static const char* GL[7] = { "10000", "10000", "10000", "10000", "10000", "10000", "11111" };
 	static const char* GI[7] = { "11111", "00100", "00100", "00100", "00100", "00100", "11111" };
+	static const char* GN[7] = { "10001", "11001", "10101", "10011", "10001", "10001", "10001" };
 	static const char* GM[7] = { "10001", "11011", "10101", "10101", "10001", "10001", "10001" };
 	static const char* GO[7] = { "01110", "10001", "10001", "10001", "10001", "10001", "01110" };
+	static const char* GP[7] = { "11110", "10001", "10001", "11110", "10000", "10000", "10000" };
 	static const char* GR[7] = { "11110", "10001", "10001", "11110", "10100", "10010", "10001" };
 	static const char* GS[7] = { "01111", "10000", "10000", "01110", "00001", "00001", "11110" };
 	static const char* GT[7] = { "11111", "00100", "00100", "00100", "00100", "00100", "00100" };
+	static const char* GU[7] = { "10001", "10001", "10001", "10001", "10001", "10001", "01110" };
+	static const char* GV[7] = { "10001", "10001", "10001", "10001", "01010", "01010", "00100" };
 	static const char* GX[7] = { "10001", "10001", "01010", "00100", "01010", "10001", "10001" };
+	static const char* GY[7] = { "10001", "01010", "00100", "00100", "00100", "00100", "00100" };
 	static const char* GColon[7] = { "00000", "00100", "00100", "00000", "00100", "00100", "00000" };
 	static const char* GSpace[7] = { "00000", "00000", "00000", "00000", "00000", "00000", "00000" };
 	const char** g = GSpace;
@@ -464,15 +480,22 @@ static void DrawGlyph(SDL_Renderer* renderer, int x, int y, int scale, char ch)
 	case '8': g = G8; break;
 	case '9': g = G9; break;
 	case 'A': g = GA; break;
+	case 'D': g = GD; break;
 	case 'C': g = GC; break;
 	case 'E': g = GE; break;
+	case 'L': g = GL; break;
 	case 'I': g = GI; break;
+	case 'N': g = GN; break;
 	case 'M': g = GM; break;
 	case 'O': g = GO; break;
+	case 'P': g = GP; break;
 	case 'R': g = GR; break;
 	case 'S': g = GS; break;
 	case 'T': g = GT; break;
+	case 'U': g = GU; break;
+	case 'V': g = GV; break;
 	case 'X': g = GX; break;
+	case 'Y': g = GY; break;
 	case ':': g = GColon; break;
 	default: break;
 	}
@@ -552,7 +575,7 @@ void Game::init(const char* title, int width, int height, bool fullscreen)
 			SDL_AudioSpec want{};
 			SDL_AudioSpec have{};
 			want.freq = AUDIO_SAMPLE_RATE;
-			want.format = AUDIO_S16SYS;
+			want.format = AUDIO_F32SYS;
 			want.channels = 1;
 			want.samples = 2048;
 			want.callback = AudioCallback;
@@ -734,6 +757,7 @@ void Game::update()
 			{
 				PlayStompSfx();
 				enemyFlickerFrames = 40;
+				stompImpactFrames = 16;
 				int stompBonus = (currentTimeLeft <= 30) ? 200 : 100;
 				scoreCounter += stompBonus;
 				player->StompBounce();
@@ -826,6 +850,7 @@ void Game::update()
 			butterflyFxY = butterflyRect.y + butterflyRect.h / 2;
 			butterflyCapturedCount++;
 			PlayButterflyCaptureSfx();
+			butterflyWinFrames = 20;
 			comboChain++;
 			if (comboChain > 5) comboChain = 5;
 			int capturePoints = 200 * comboChain;
@@ -840,12 +865,15 @@ void Game::update()
 				levelCleared = true;
 				levelClearFrames = 180;
 				levelRestartFrames = 0;
+				butterflyWinFrames = 60;
 				PlayWinSfx();
 			}
 		}
 	}
 
 	if (butterflyFxFrames > 0) butterflyFxFrames--;
+	if (stompImpactFrames > 0) stompImpactFrames--;
+	if (butterflyWinFrames > 0) butterflyWinFrames--;
 	if (floatingScoreFrames > 0)
 	{
 		floatingScoreFrames--;
@@ -917,6 +945,18 @@ void Game::render()
 		DrawButterflyFx(renderer, butterflyFxX + shakeX, butterflyFxY + shakeY, butterflyFxFrames);
 	}
 
+	if (stompImpactFrames > 0)
+	{
+		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+		SDL_SetRenderDrawColor(renderer, 255, 248, 112, 120);
+		SDL_Rect stompFlash = { 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT };
+		SDL_RenderFillRect(renderer, &stompFlash);
+		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 70);
+		SDL_Rect stompShade = { 0, SCREEN_HEIGHT - GROUND_HEIGHT, SCREEN_WIDTH, GROUND_HEIGHT };
+		SDL_RenderFillRect(renderer, &stompShade);
+		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
+	}
+
 	SDL_Rect ground = { 0, SCREEN_HEIGHT - GROUND_HEIGHT, SCREEN_WIDTH, GROUND_HEIGHT };
 	SDL_SetRenderDrawColor(renderer, 34, 139, 34, 255);
 	SDL_RenderFillRect(renderer, &ground);
@@ -936,7 +976,7 @@ void Game::render()
 	int timeSeconds = timeLeft % 60;
 	std::snprintf(scoreText, sizeof(scoreText), "SCORE %06d", scoreCounter);
 	std::snprintf(timeText, sizeof(timeText), "TIME %02d:%02d", timeMinutes, timeSeconds);
-	std::snprintf(butterflyText, sizeof(butterflyText), "X %03d/%03d", butterflyCapturedCount, butterflyGoal);
+	std::snprintf(butterflyText, sizeof(butterflyText), "X %02d -> %02d", butterflyCapturedCount, butterflyGoal);
 
 	SDL_SetRenderDrawColor(renderer, 58, 94, 161, 255);
 	DrawText(renderer, 26, 18, 4, scoreText);
@@ -954,12 +994,16 @@ void Game::render()
 	}
 	DrawText(renderer, SCREEN_WIDTH - 24 - (int)std::strlen(timeText) * 24, 16, 4, timeText);
 
+	const int butterflyIconWidth = 24;
+	const int butterflyTextWidth = (int)std::strlen(butterflyText) * 24;
+	const int butterflyBlockWidth = butterflyIconWidth + 12 + butterflyTextWidth;
+	const int butterflyStartX = SCREEN_WIDTH / 2 - butterflyBlockWidth / 2;
 	SDL_SetRenderDrawColor(renderer, 58, 94, 161, 255);
-	DrawButterflyIcon(renderer, SCREEN_WIDTH / 2 - 52 + 2, 18, 4);
-	DrawText(renderer, SCREEN_WIDTH / 2 - 6 + 2, 18, 4, butterflyText);
+	DrawButterflyIcon(renderer, butterflyStartX + 2, 18, 4);
+	DrawText(renderer, butterflyStartX + butterflyIconWidth + 14 + 2, 18, 4, butterflyText);
 	SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-	DrawButterflyIcon(renderer, SCREEN_WIDTH / 2 - 52, 18, 4);
-	DrawText(renderer, SCREEN_WIDTH / 2 - 6, 16, 4, butterflyText);
+	DrawButterflyIcon(renderer, butterflyStartX, 16, 4);
+	DrawText(renderer, butterflyStartX + butterflyIconWidth + 14, 16, 4, butterflyText);
 
 	if (floatingScoreFrames > 0)
 	{
@@ -969,20 +1013,6 @@ void Game::render()
 		DrawText(renderer, floatingScoreX + 1, floatingScoreY + 1, 3, floatText);
 		SDL_SetRenderDrawColor(renderer, 255, 252, 112, 255);
 		DrawText(renderer, floatingScoreX, floatingScoreY, 3, floatText);
-	}
-
-	if (levelCleared)
-	{
-		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
-		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 160);
-		SDL_Rect clearShade = { 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT };
-		SDL_RenderFillRect(renderer, &clearShade);
-		SDL_SetRenderDrawColor(renderer, 255, 248, 96, 255);
-		DrawText(renderer, SCREEN_WIDTH / 2 - 156, SCREEN_HEIGHT / 2 - 40, 5, "LEVEL CLEAR");
-		SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-		DrawText(renderer, SCREEN_WIDTH / 2 - 168, SCREEN_HEIGHT / 2 + 6, 4, "NEXT STAGE LOADING");
-		DrawText(renderer, SCREEN_WIDTH / 2 - 120, SCREEN_HEIGHT / 2 + 34, 3, "PRESS ENTER TO PAUSE");
-		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
 	}
 
 	if (player)
@@ -1028,6 +1058,25 @@ void Game::render()
 		SDL_Rect bar2 = { SCREEN_WIDTH / 2 + 6, SCREEN_HEIGHT / 2 - 34, 14, 68 };
 		SDL_RenderFillRect(renderer, &bar1);
 		SDL_RenderFillRect(renderer, &bar2);
+		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
+	}
+
+	if (levelCleared)
+	{
+		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 180);
+		SDL_Rect clearShade = { 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT };
+		SDL_RenderFillRect(renderer, &clearShade);
+		if (butterflyWinFrames > 0)
+		{
+			SDL_SetRenderDrawColor(renderer, 255, 248, 96, 120);
+			SDL_RenderFillRect(renderer, &clearShade);
+		}
+		SDL_SetRenderDrawColor(renderer, 255, 248, 96, 255);
+		DrawText(renderer, SCREEN_WIDTH / 2 - 156, SCREEN_HEIGHT / 2 - 40, 5, "LEVEL CLEAR");
+		SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+		DrawText(renderer, SCREEN_WIDTH / 2 - 168, SCREEN_HEIGHT / 2 + 6, 4, "NEXT STAGE LOADING");
+		DrawText(renderer, SCREEN_WIDTH / 2 - 120, SCREEN_HEIGHT / 2 + 34, 3, "PRESS ENTER TO PAUSE");
 		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
 	}
 

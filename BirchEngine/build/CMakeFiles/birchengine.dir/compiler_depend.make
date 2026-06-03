@@ -60,6 +60,7 @@ CMakeFiles/birchengine.dir/Src/Game.cpp.o: /home/uncannyvalleypictures/myprogram
   /usr/include/asm-generic/errno-base.h \
   /usr/include/asm-generic/errno.h \
   /usr/include/c++/13/algorithm \
+  /usr/include/c++/13/array \
   /usr/include/c++/13/backward/binders.h \
   /usr/include/c++/13/bit \
   /usr/include/c++/13/bits/algorithmfwd.h \
@@ -126,6 +127,7 @@ CMakeFiles/birchengine.dir/Src/Game.cpp.o: /home/uncannyvalleypictures/myprogram
   /usr/include/c++/13/cerrno \
   /usr/include/c++/13/clocale \
   /usr/include/c++/13/cmath \
+  /usr/include/c++/13/compare \
   /usr/include/c++/13/cstddef \
   /usr/include/c++/13/cstdio \
   /usr/include/c++/13/cstdlib \
@@ -1552,8 +1554,6 @@ CMakeFiles/birchengine.dir/Src/main.cpp.o: /home/uncannyvalleypictures/myprogram
 
 /usr/lib/gcc/x86_64-linux-gnu/13/include/clwbintrin.h:
 
-/usr/lib/gcc/x86_64-linux-gnu/13/include/clflushoptintrin.h:
-
 /usr/lib/gcc/x86_64-linux-gnu/13/include/cldemoteintrin.h:
 
 /usr/lib/gcc/x86_64-linux-gnu/13/include/bmiintrin.h:
@@ -1648,12 +1648,6 @@ CMakeFiles/birchengine.dir/Src/main.cpp.o: /home/uncannyvalleypictures/myprogram
 
 /usr/include/x86_64-linux-gnu/bits/typesizes.h:
 
-/usr/include/c++/13/cstdio:
-
-/usr/include/c++/13/cstddef:
-
-/usr/include/c++/13/bits/stl_algo.h:
-
 /usr/include/c++/13/cerrno:
 
 /usr/include/x86_64-linux-gnu/bits/stdint-least.h:
@@ -1676,13 +1670,23 @@ CMakeFiles/birchengine.dir/Src/main.cpp.o: /home/uncannyvalleypictures/myprogram
 
 /usr/include/SDL2/SDL_keyboard.h:
 
+/usr/include/x86_64-linux-gnu/bits/types/struct_sched_param.h:
+
+/usr/include/asm-generic/errno.h:
+
 /usr/include/c++/13/bits/stl_heap.h:
+
+/usr/include/c++/13/bits/stl_algo.h:
+
+/usr/include/c++/13/cstddef:
 
 /usr/include/c++/13/bits/locale_facets.tcc:
 
 /usr/include/c++/13/bits/refwrap.h:
 
 /usr/include/x86_64-linux-gnu/bits/types/__fpos_t.h:
+
+/usr/include/c++/13/compare:
 
 /usr/include/c++/13/system_error:
 
@@ -1733,6 +1737,8 @@ CMakeFiles/birchengine.dir/Src/main.cpp.o: /home/uncannyvalleypictures/myprogram
 /usr/include/c++/13/bits/exception_ptr.h:
 
 /usr/include/c++/13/bits/istream.tcc:
+
+/usr/include/c++/13/cstdio:
 
 /usr/include/c++/13/bits/exception.h:
 
@@ -1882,6 +1888,10 @@ CMakeFiles/birchengine.dir/Src/main.cpp.o: /home/uncannyvalleypictures/myprogram
 
 /usr/include/SDL2/SDL_clipboard.h:
 
+/usr/include/x86_64-linux-gnu/bits/types/timer_t.h:
+
+/usr/include/SDL2/SDL_gamecontroller.h:
+
 /usr/lib/gcc/x86_64-linux-gnu/13/include/rdseedintrin.h:
 
 /usr/include/SDL2/SDL_config.h:
@@ -1911,6 +1921,10 @@ CMakeFiles/birchengine.dir/Src/main.cpp.o: /home/uncannyvalleypictures/myprogram
 /usr/include/SDL2/SDL_mutex.h:
 
 /usr/include/x86_64-linux-gnu/bits/math-vector.h:
+
+/usr/lib/gcc/x86_64-linux-gnu/13/include/clflushoptintrin.h:
+
+/usr/include/c++/13/array:
 
 /usr/lib/gcc/x86_64-linux-gnu/13/include/serializeintrin.h:
 
@@ -1979,10 +1993,6 @@ CMakeFiles/birchengine.dir/Src/main.cpp.o: /home/uncannyvalleypictures/myprogram
 /usr/lib/gcc/x86_64-linux-gnu/13/include/smmintrin.h:
 
 /usr/include/SDL2/SDL_platform.h:
-
-/usr/include/SDL2/SDL_gamecontroller.h:
-
-/usr/include/x86_64-linux-gnu/bits/types/timer_t.h:
 
 /usr/include/c++/13/clocale:
 
@@ -2245,10 +2255,6 @@ CMakeFiles/birchengine.dir/Src/main.cpp.o: /home/uncannyvalleypictures/myprogram
 /usr/include/x86_64-linux-gnu/bits/types/cookie_io_functions_t.h:
 
 /usr/include/x86_64-linux-gnu/bits/types/locale_t.h:
-
-/usr/include/asm-generic/errno.h:
-
-/usr/include/x86_64-linux-gnu/bits/types/struct_sched_param.h:
 
 /usr/include/c++/13/ext/atomicity.h:
 
