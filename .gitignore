@@ -1,0 +1,9 @@
+# Generated build output
+build/
+BirchEngine/build/
+
+# Packaged release artifacts
+dist/
+
+# Local cleanup staging
+trash/

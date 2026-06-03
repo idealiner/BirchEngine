@@ -673,6 +673,22 @@ Game::Game()
 Game::~Game()
 {}
 
+void Game::ResetInputEdges()
+{
+	input.jumpPressed = false;
+	input.pausePressed = false;
+	input.restartPressed = false;
+}
+
+void Game::UpdateDirectionalInput()
+{
+	const Uint8* keyState = SDL_GetKeyboardState(NULL);
+	input.left = keyState[SDL_SCANCODE_LEFT] || keyState[SDL_SCANCODE_A] || virtualLeftHeld;
+	input.right = keyState[SDL_SCANCODE_RIGHT] || keyState[SDL_SCANCODE_D] || virtualRightHeld;
+	input.up = keyState[SDL_SCANCODE_UP] || keyState[SDL_SCANCODE_W];
+	input.down = keyState[SDL_SCANCODE_DOWN] || keyState[SDL_SCANCODE_S];
+}
+
 void Game::init(const char* title, int width, int height, bool fullscreen)
 {
 	int flags = 0;
@@ -732,6 +748,7 @@ void Game::init(const char* title, int width, int height, bool fullscreen)
 void Game::handleEvents()
 {
 	SDL_Event event;
+	ResetInputEdges();
 
 	while (SDL_PollEvent(&event))
 	{
@@ -745,21 +762,90 @@ void Game::handleEvents()
 			{
 				if (gameOver)
 				{
-					ResetLevelState(false);
+					input.restartPressed = true;
 				}
 				else if (!levelCleared)
 				{
-					isPaused = !isPaused;
+					input.pausePressed = true;
 				}
 			}
-			if (!isPaused && !levelCleared && !gameOver && event.key.keysym.sym == SDLK_SPACE && player)
+			if (event.key.repeat == 0 && event.key.keysym.sym == SDLK_SPACE)
 			{
-				player->Jump();
+				input.jumpPressed = true;
+			}
+			break;
+		case SDL_FINGERDOWN:
+		{
+			float x = event.tfinger.x;
+			float y = event.tfinger.y;
+			if (y > 0.72f)
+			{
+				if (x < 0.35f)
+				{
+					virtualLeftHeld = true;
+				}
+				else if (x > 0.65f)
+				{
+					virtualRightHeld = true;
+				}
+				else
+				{
+					virtualJumpQueued = true;
+				}
+			}
+			else
+			{
+				virtualJumpQueued = true;
+			}
+			break;
+		}
+		case SDL_FINGERUP:
+			virtualLeftHeld = false;
+			virtualRightHeld = false;
+			break;
+		case SDL_MOUSEBUTTONDOWN:
+			if (event.button.button == SDL_BUTTON_LEFT)
+			{
+				float x = (float)event.button.x / (float)SCREEN_WIDTH;
+				float y = (float)event.button.y / (float)SCREEN_HEIGHT;
+				if (y > 0.72f)
+				{
+					if (x < 0.35f)
+					{
+						virtualLeftHeld = true;
+					}
+					else if (x > 0.65f)
+					{
+						virtualRightHeld = true;
+					}
+					else
+					{
+						virtualJumpQueued = true;
+					}
+				}
+				else
+				{
+					virtualJumpQueued = true;
+				}
+			}
+			break;
+		case SDL_MOUSEBUTTONUP:
+			if (event.button.button == SDL_BUTTON_LEFT)
+			{
+				virtualLeftHeld = false;
+				virtualRightHeld = false;
 			}
 			break;
 		default:
 			break;
 		}
+	}
+
+	UpdateDirectionalInput();
+	if (virtualJumpQueued)
+	{
+		input.jumpPressed = true;
+		virtualJumpQueued = false;
 	}
 }
 
@@ -779,6 +865,21 @@ void Game::update()
 		dt = 0.05f;
 	}
 	lastUpdateTicks = nowTicks;
+
+	if (input.restartPressed && gameOver)
+	{
+		ResetLevelState(false);
+	}
+
+	if (input.pausePressed && !gameOver && !levelCleared)
+	{
+		isPaused = !isPaused;
+	}
+
+	if (input.jumpPressed && !isPaused && !levelCleared && !gameOver && player)
+	{
+		player->Jump();
+	}
 
 	if (isPaused)
 	{
@@ -842,21 +943,20 @@ void Game::update()
 	}
 	butterflySpeed = 3.0f + 3.0f * progress;
 
-	const Uint8* keyState = SDL_GetKeyboardState(NULL);
-	if (keyState[SDL_SCANCODE_LEFT])
+	if (input.left)
 	{
 		playerVelX = -1;
 	}
-	else if (keyState[SDL_SCANCODE_RIGHT])
+	else if (input.right)
 	{
 		playerVelX = 1;
 	}
 
-	if (keyState[SDL_SCANCODE_UP])
+	if (input.up)
 	{
 		playerVelY = -1;
 	}
-	else if (keyState[SDL_SCANCODE_DOWN])
+	else if (input.down)
 	{
 		playerVelY = 1;
 	}

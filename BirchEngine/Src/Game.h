@@ -19,8 +19,26 @@ public:
 	void clean();
 
 private:
+	struct InputState
+	{
+		bool left = false;
+		bool right = false;
+		bool up = false;
+		bool down = false;
+		bool jumpPressed = false;
+		bool pausePressed = false;
+		bool restartPressed = false;
+	};
+
+	void ResetInputEdges();
+	void UpdateDirectionalInput();
+
 	bool isRunning = false;
 	int cnt = 0;
 	SDL_Window *window;
 	SDL_Renderer *renderer;
+	InputState input;
+	bool virtualLeftHeld = false;
+	bool virtualRightHeld = false;
+	bool virtualJumpQueued = false;
 };
