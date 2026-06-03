@@ -5,6 +5,7 @@
 #include <cstring>
 #include <cmath>
 #include <algorithm>
+#include <array>
 
 /*SDL_Texture* playerTex;
 SDL_Rect srcR, destR;*/
@@ -52,6 +53,72 @@ int currentTimeLeft = 0;
 bool enemyActive = true;
 int enemyRespawnFrames = 0;
 int hitDangerFrames = 0;
+int butterflyGoal = 10;
+int levelNumber = 1;
+bool levelCleared = false;
+int levelClearFrames = 0;
+int levelRestartFrames = 0;
+
+static const int AUDIO_SAMPLE_RATE = 44100;
+static const int AUDIO_VOICES = 16;
+static SDL_AudioDeviceID audioDevice = 0;
+
+struct SynthVoice
+{
+	bool active = false;
+	int remaining = 0;
+	int total = 0;
+	int waveform = 0;
+	double frequency = 0.0;
+	double phase = 0.0;
+	double volume = 0.0;
+	double decay = 0.0;
+};
+
+struct MusicNote
+{
+	double frequency;
+	int duration;
+	int waveform;
+	double volume;
+};
+
+static std::array<SynthVoice, AUDIO_VOICES> audioVoices;
+static const std::array<MusicNote, 16> MUSIC_PATTERN = {
+	MusicNote{ 392.0, 10 * AUDIO_SAMPLE_RATE / 8, 0, 0.06 },
+	MusicNote{ 494.0, 10 * AUDIO_SAMPLE_RATE / 8, 0, 0.06 },
+	MusicNote{ 587.0, 10 * AUDIO_SAMPLE_RATE / 8, 0, 0.06 },
+	MusicNote{ 523.0, 10 * AUDIO_SAMPLE_RATE / 8, 0, 0.06 },
+	MusicNote{ 440.0, 10 * AUDIO_SAMPLE_RATE / 8, 0, 0.06 },
+	MusicNote{ 587.0, 10 * AUDIO_SAMPLE_RATE / 8, 0, 0.06 },
+	MusicNote{ 659.0, 10 * AUDIO_SAMPLE_RATE / 8, 0, 0.06 },
+	MusicNote{ 784.0, 10 * AUDIO_SAMPLE_RATE / 8, 0, 0.06 },
+	MusicNote{ 659.0, 10 * AUDIO_SAMPLE_RATE / 8, 0, 0.06 },
+	MusicNote{ 587.0, 10 * AUDIO_SAMPLE_RATE / 8, 0, 0.06 },
+	MusicNote{ 523.0, 10 * AUDIO_SAMPLE_RATE / 8, 0, 0.06 },
+	MusicNote{ 494.0, 10 * AUDIO_SAMPLE_RATE / 8, 0, 0.06 },
+	MusicNote{ 440.0, 10 * AUDIO_SAMPLE_RATE / 8, 0, 0.06 },
+	MusicNote{ 392.0, 10 * AUDIO_SAMPLE_RATE / 8, 0, 0.06 },
+	MusicNote{ 330.0, 10 * AUDIO_SAMPLE_RATE / 8, 0, 0.06 },
+	MusicNote{ 392.0, 20 * AUDIO_SAMPLE_RATE / 8, 0, 0.06 }
+};
+static int musicPatternIndex = 0;
+static int musicSamplesLeft = 0;
+static double musicPhase = 0.0;
+static double musicFrequency = 0.0;
+static int musicWaveform = 0;
+static double musicVolume = 0.0;
+
+static bool levelTransitionActive = false;
+
+static void StartMusicNote();
+static void PlayTone(double frequency, int durationMs, double volume, int waveform, double decay);
+static void PlayStompSfx();
+static void PlayButterflyCaptureSfx();
+static void PlayEnemyHitSfx();
+static void PlayWinSfx();
+static void ResetLevelState(bool incrementLevel);
+static void AudioCallback(void* userdata, Uint8* stream, int len);
 
 static const int SCREEN_WIDTH = 1024;
 static const int SCREEN_HEIGHT = 768;
@@ -60,6 +127,7 @@ static const int SPRITE_SIZE = 150;
 static const int LEVEL_TIME_SECONDS = 300;
 static const int BUTTERFLY_SIZE = 150;
 static const int BUTTERFLY_FRAMES = 6;
+static const int TARGET_BUTTERFLIES_BASE = 10;
 
 static float TriangleWave(float t)
 {
@@ -128,6 +196,212 @@ static void ResetButterflyFlight()
 	butterflyFrame = 0;
 	butterflyFrameTick = 0;
 	butterflyRespawnFrames = 0;
+}
+
+static void StartMusicNote()
+{
+	if (musicPatternIndex < 0 || musicPatternIndex >= (int)MUSIC_PATTERN.size())
+	{
+		musicPatternIndex = 0;
+	}
+
+	const MusicNote& note = MUSIC_PATTERN[(size_t)musicPatternIndex];
+	musicFrequency = note.frequency;
+	musicWaveform = note.waveform;
+	musicVolume = note.volume;
+	musicSamplesLeft = note.duration;
+	musicPhase = 0.0;
+	musicPatternIndex = (musicPatternIndex + 1) % (int)MUSIC_PATTERN.size();
+}
+
+static void PlayTone(double frequency, int durationMs, double volume, int waveform, double decay)
+{
+	if (audioDevice == 0)
+	{
+		return;
+	}
+
+	SDL_LockAudioDevice(audioDevice);
+	for (auto& voice : audioVoices)
+	{
+		if (!voice.active)
+		{
+			voice.active = true;
+			voice.remaining = std::max(1, durationMs * AUDIO_SAMPLE_RATE / 1000);
+			voice.total = voice.remaining;
+			voice.waveform = waveform;
+			voice.frequency = frequency;
+			voice.phase = 0.0;
+			voice.volume = volume;
+			voice.decay = decay;
+			break;
+		}
+	}
+	SDL_UnlockAudioDevice(audioDevice);
+}
+
+static void PlayStompSfx()
+{
+	PlayTone(880.0, 80, 0.12, 0, 0.9);
+	PlayTone(660.0, 90, 0.10, 1, 0.92);
+}
+
+static void PlayButterflyCaptureSfx()
+{
+	PlayTone(523.25, 70, 0.09, 2, 0.93);
+	PlayTone(659.25, 70, 0.09, 2, 0.93);
+	PlayTone(783.99, 90, 0.10, 0, 0.94);
+}
+
+static void PlayEnemyHitSfx()
+{
+	PlayTone(220.0, 110, 0.12, 3, 0.85);
+	PlayTone(146.0, 120, 0.11, 0, 0.90);
+}
+
+static void PlayWinSfx()
+{
+	PlayTone(523.25, 110, 0.10, 0, 0.95);
+	PlayTone(659.25, 110, 0.10, 0, 0.95);
+	PlayTone(783.99, 110, 0.10, 0, 0.95);
+	PlayTone(1046.5, 180, 0.10, 0, 0.96);
+}
+
+static void ResetLevelState(bool incrementLevel)
+{
+	if (incrementLevel)
+	{
+		levelNumber++;
+	}
+
+	butterflyGoal = 10 + (levelNumber - 1) * 5;
+	if (butterflyGoal > 25)
+	{
+		butterflyGoal = 25;
+	}
+
+	butterflyCapturedCount = 0;
+	comboChain = 0;
+	playerFlickerFrames = 0;
+	enemyFlickerFrames = 0;
+	playerInvulnFrames = 0;
+	butterflyFxFrames = 0;
+	floatingScoreFrames = 0;
+	floatingScoreValue = 0;
+	isPaused = false;
+	freezeFrames = 0;
+	shakeFrames = 0;
+	hitDangerFrames = 0;
+	nearMissAwarded = false;
+	levelCleared = false;
+	levelClearFrames = 0;
+	levelRestartFrames = 0;
+	levelTransitionActive = false;
+	currentTimeLeft = LEVEL_TIME_SECONDS;
+	gameClockSeconds = 0.0f;
+	elapsedSeconds = 0;
+	gameStartTicks = SDL_GetTicks();
+	lastUpdateTicks = SDL_GetTicks();
+	cloudParallaxX = 0.0f;
+	treeParallaxX = 0.0f;
+	butterflyRespawnFrames = 0;
+	ResetButterflyFlight();
+	if (enemy)
+	{
+		enemyActive = true;
+		enemyRespawnFrames = 0;
+		enemy->SetPosition(SCREEN_WIDTH + 120, SCREEN_HEIGHT - GROUND_HEIGHT - SPRITE_SIZE);
+	}
+	if (player)
+	{
+		player->SetPosition(0, SCREEN_HEIGHT - GROUND_HEIGHT - SPRITE_SIZE);
+	}
+	prevEnemyX = SCREEN_WIDTH + 120;
+	if (audioDevice != 0)
+	{
+		SDL_LockAudioDevice(audioDevice);
+		musicPatternIndex = 0;
+		musicSamplesLeft = 0;
+		musicPhase = 0.0;
+		SDL_UnlockAudioDevice(audioDevice);
+	}
+}
+
+static void AudioCallback(void* userdata, Uint8* stream, int len)
+{
+	(void)userdata;
+	std::memset(stream, 0, len);
+	int16_t* out = reinterpret_cast<int16_t*>(stream);
+	int samples = len / sizeof(int16_t);
+
+	for (int i = 0; i < samples; ++i)
+	{
+		if (musicSamplesLeft <= 0)
+		{
+			StartMusicNote();
+		}
+
+		double mixed = 0.0;
+
+		if (musicSamplesLeft > 0)
+		{
+			double phaseStep = musicFrequency / (double)AUDIO_SAMPLE_RATE;
+			musicPhase += phaseStep;
+			if (musicPhase >= 1.0)
+			{
+				musicPhase -= 1.0;
+			}
+
+			double musicSample = 0.0;
+			switch (musicWaveform)
+			{
+			case 0: musicSample = (musicPhase < 0.5) ? 1.0 : -1.0; break;
+			case 1: musicSample = (musicPhase < 0.5) ? (musicPhase * 4.0 - 1.0) : (3.0 - musicPhase * 4.0); break;
+			case 2: musicSample = 2.0 * std::fabs(2.0 * musicPhase - 1.0) - 1.0; break;
+			default: musicSample = (musicPhase < 0.5) ? 1.0 : -1.0; break;
+			}
+			mixed += musicSample * musicVolume;
+			musicSamplesLeft--;
+		}
+
+		for (auto& voice : audioVoices)
+		{
+			if (!voice.active)
+			{
+				continue;
+			}
+
+			double phaseStep = voice.frequency / (double)AUDIO_SAMPLE_RATE;
+			voice.phase += phaseStep;
+			if (voice.phase >= 1.0)
+			{
+				voice.phase -= 1.0;
+			}
+
+			double sample = 0.0;
+			switch (voice.waveform)
+			{
+			case 0: sample = (voice.phase < 0.5) ? 1.0 : -1.0; break;
+			case 1: sample = (voice.phase < 0.5) ? (voice.phase * 4.0 - 1.0) : (3.0 - voice.phase * 4.0); break;
+			case 2: sample = 2.0 * std::fabs(2.0 * voice.phase - 1.0) - 1.0; break;
+			case 3: sample = (((int)(voice.phase * 16.0)) & 1) ? 1.0 : -1.0; break;
+			default: sample = (voice.phase < 0.5) ? 1.0 : -1.0; break;
+			}
+
+			double life = (double)voice.remaining / (double)std::max(1, voice.total);
+			double envelope = std::max(0.0, life * voice.volume);
+			mixed += sample * envelope;
+			voice.remaining--;
+			voice.volume *= voice.decay;
+			if (voice.remaining <= 0 || voice.volume < 0.002)
+			{
+				voice.active = false;
+			}
+		}
+
+		mixed = std::clamp(mixed, -1.0, 1.0);
+		out[i] = (int16_t)(mixed * 12000.0);
+	}
 }
 
 static void DrawCloud(SDL_Renderer* renderer, int x, int y, int p)
@@ -270,27 +544,25 @@ void Game::init(const char* title, int width, int height, bool fullscreen)
 		enemy = new GameObject("assets/arche.png", renderer, SCREEN_WIDTH + 120, groundY, 6);
 		enemy->SetGroundY(groundY);
 		scoreCounter = 0;
-		gameStartTicks = SDL_GetTicks();
-		cloudParallaxX = 0.0f;
-		treeParallaxX = 0.0f;
-		butterflyCapturedCount = 0;
-		butterflyFxFrames = 0;
-		playerInvulnFrames = 0;
-		comboChain = 0;
-		freezeFrames = 0;
-		shakeFrames = 0;
-		floatingScoreFrames = 0;
 		isPaused = false;
-		nearMissAwarded = false;
-		lastUpdateTicks = SDL_GetTicks();
-		gameClockSeconds = 0.0f;
-		elapsedSeconds = 0;
-		currentTimeLeft = LEVEL_TIME_SECONDS;
-		enemyActive = true;
-		enemyRespawnFrames = 0;
-		hitDangerFrames = 0;
-		ResetButterflyFlight();
-		prevEnemyX = SCREEN_WIDTH + 120;
+		levelNumber = 1;
+		butterflyGoal = TARGET_BUTTERFLIES_BASE;
+		if (audioDevice == 0)
+		{
+			SDL_AudioSpec want{};
+			SDL_AudioSpec have{};
+			want.freq = AUDIO_SAMPLE_RATE;
+			want.format = AUDIO_S16SYS;
+			want.channels = 1;
+			want.samples = 2048;
+			want.callback = AudioCallback;
+			audioDevice = SDL_OpenAudioDevice(NULL, 0, &want, &have, 0);
+			if (audioDevice != 0)
+			{
+				SDL_PauseAudioDevice(audioDevice, 0);
+			}
+		}
+		ResetLevelState(false);
 	}
 }
 
@@ -308,9 +580,12 @@ void Game::handleEvents()
 		case SDL_KEYDOWN:
 			if (event.key.repeat == 0 && event.key.keysym.sym == SDLK_RETURN)
 			{
-				isPaused = !isPaused;
+				if (!levelCleared)
+				{
+					isPaused = !isPaused;
+				}
 			}
-			if (!isPaused && event.key.keysym.sym == SDLK_SPACE && player)
+			if (!isPaused && !levelCleared && event.key.keysym.sym == SDLK_SPACE && player)
 			{
 				player->Jump();
 			}
@@ -340,6 +615,27 @@ void Game::update()
 
 	if (isPaused)
 	{
+		return;
+	}
+
+	if (levelCleared)
+	{
+		if (levelClearFrames > 0)
+		{
+			levelClearFrames--;
+			return;
+		}
+
+		if (levelRestartFrames == 0)
+		{
+			levelRestartFrames = 60;
+		}
+
+		levelRestartFrames--;
+		if (levelRestartFrames <= 0)
+		{
+			ResetLevelState(true);
+		}
 		return;
 	}
 
@@ -436,6 +732,7 @@ void Game::update()
 			const bool fromAbove = (prevPlayerRect.y + prevPlayerRect.h) <= (enemyRect.y + 8);
 			if (descending && fromAbove)
 			{
+				PlayStompSfx();
 				enemyFlickerFrames = 40;
 				int stompBonus = (currentTimeLeft <= 30) ? 200 : 100;
 				scoreCounter += stompBonus;
@@ -448,6 +745,7 @@ void Game::update()
 			}
 			else if (playerFlickerFrames == 0 && playerInvulnFrames == 0)
 			{
+				PlayEnemyHitSfx();
 				playerFlickerFrames = 60;
 				playerInvulnFrames = 60;
 				scoreCounter = std::max(0, scoreCounter - 100);
@@ -527,6 +825,7 @@ void Game::update()
 			butterflyFxX = butterflyRect.x + butterflyRect.w / 2;
 			butterflyFxY = butterflyRect.y + butterflyRect.h / 2;
 			butterflyCapturedCount++;
+			PlayButterflyCaptureSfx();
 			comboChain++;
 			if (comboChain > 5) comboChain = 5;
 			int capturePoints = 200 * comboChain;
@@ -536,6 +835,13 @@ void Game::update()
 			floatingScoreX = butterflyRect.x + butterflyRect.w / 2;
 			floatingScoreY = butterflyRect.y - 12;
 			freezeFrames = 2;
+			if (butterflyCapturedCount >= butterflyGoal)
+			{
+				levelCleared = true;
+				levelClearFrames = 180;
+				levelRestartFrames = 0;
+				PlayWinSfx();
+			}
 		}
 	}
 
@@ -630,7 +936,7 @@ void Game::render()
 	int timeSeconds = timeLeft % 60;
 	std::snprintf(scoreText, sizeof(scoreText), "SCORE %06d", scoreCounter);
 	std::snprintf(timeText, sizeof(timeText), "TIME %02d:%02d", timeMinutes, timeSeconds);
-	std::snprintf(butterflyText, sizeof(butterflyText), "X %03d", butterflyCapturedCount);
+	std::snprintf(butterflyText, sizeof(butterflyText), "X %03d/%03d", butterflyCapturedCount, butterflyGoal);
 
 	SDL_SetRenderDrawColor(renderer, 58, 94, 161, 255);
 	DrawText(renderer, 26, 18, 4, scoreText);
@@ -663,6 +969,20 @@ void Game::render()
 		DrawText(renderer, floatingScoreX + 1, floatingScoreY + 1, 3, floatText);
 		SDL_SetRenderDrawColor(renderer, 255, 252, 112, 255);
 		DrawText(renderer, floatingScoreX, floatingScoreY, 3, floatText);
+	}
+
+	if (levelCleared)
+	{
+		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 160);
+		SDL_Rect clearShade = { 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT };
+		SDL_RenderFillRect(renderer, &clearShade);
+		SDL_SetRenderDrawColor(renderer, 255, 248, 96, 255);
+		DrawText(renderer, SCREEN_WIDTH / 2 - 156, SCREEN_HEIGHT / 2 - 40, 5, "LEVEL CLEAR");
+		SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+		DrawText(renderer, SCREEN_WIDTH / 2 - 168, SCREEN_HEIGHT / 2 + 6, 4, "NEXT STAGE LOADING");
+		DrawText(renderer, SCREEN_WIDTH / 2 - 120, SCREEN_HEIGHT / 2 + 34, 3, "PRESS ENTER TO PAUSE");
+		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
 	}
 
 	if (player)
@@ -744,6 +1064,12 @@ void Game::clean()
 	{
 		SDL_DestroyWindow(window);
 		window = nullptr;
+	}
+
+	if (audioDevice != 0)
+	{
+		SDL_CloseAudioDevice(audioDevice);
+		audioDevice = 0;
 	}
 
 	IMG_Quit();
