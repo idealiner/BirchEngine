@@ -19,6 +19,8 @@ int scoreCounter = 0;
 Uint32 gameStartTicks = 0;
 float cloudParallaxX = 0.0f;
 float treeParallaxX = 0.0f;
+float skyParallaxX = 0.0f;
+float flowerParallaxX = 0.0f;
 
 SDL_Texture* butterflyTex = nullptr;
 bool butterflyActive = true;
@@ -288,32 +290,33 @@ static void PlayTone(double frequency, int durationMs, double volume, int wavefo
 
 static void PlayStompSfx()
 {
-	PlayTone(196.0, 90, 0.95, 0, 1.0);
-	PlayTone(98.0, 150, 0.85, 1, 1.0);
-	PlayTone(55.0, 210, 0.70, 2, 1.0);
+	PlayTone(73.0, 140, 0.95, 1, 1.0);
+	PlayTone(98.0, 110, 0.72, 0, 1.0);
+	PlayTone(49.0, 180, 0.58, 2, 1.0);
 }
 
 static void PlayButterflyCaptureSfx()
 {
-	PlayTone(784.0, 50, 0.60, 2, 1.0);
-	PlayTone(988.0, 50, 0.60, 2, 1.0);
-	PlayTone(1318.5, 60, 0.70, 0, 1.0);
+	PlayTone(784.0, 45, 0.55, 2, 1.0);
+	PlayTone(1046.5, 45, 0.58, 2, 1.0);
+	PlayTone(1318.5, 70, 0.68, 0, 1.0);
 }
 
 static void PlayEnemyHitSfx()
 {
-	PlayTone(220.0, 35, 0.85, 3, 1.0);
-	PlayTone(180.0, 40, 0.80, 3, 1.0);
-	PlayTone(140.0, 50, 0.78, 3, 1.0);
-	PlayTone(98.0, 90, 0.70, 0, 1.0);
+	PlayTone(740.0, 22, 0.80, 3, 1.0);
+	PlayTone(620.0, 22, 0.78, 3, 1.0);
+	PlayTone(520.0, 22, 0.76, 3, 1.0);
+	PlayTone(110.0, 120, 0.65, 1, 1.0);
 }
 
 static void PlayWinSfx()
 {
-	PlayTone(523.25, 70, 0.50, 0, 1.0);
-	PlayTone(659.25, 70, 0.52, 0, 1.0);
-	PlayTone(783.99, 80, 0.56, 0, 1.0);
-	PlayTone(1046.5, 140, 0.62, 0, 1.0);
+	PlayTone(523.25, 70, 0.52, 0, 1.0);
+	PlayTone(659.25, 70, 0.56, 0, 1.0);
+	PlayTone(783.99, 70, 0.60, 0, 1.0);
+	PlayTone(1046.5, 120, 0.68, 0, 1.0);
+	PlayTone(1318.5, 160, 0.60, 0, 1.0);
 }
 
 static void ResetLevelState(bool incrementLevel)
@@ -485,6 +488,77 @@ static void DrawTree(SDL_Renderer* renderer, int x, int baseY, int p)
 	r = { x + (2 * p), baseY - (5 * p), 6 * p, 1 * p }; SDL_RenderFillRect(renderer, &r);
 }
 
+static void DrawSun(SDL_Renderer* renderer, int x, int y, int p)
+{
+	const int radius = 6 * p;
+	const int centerX = x + radius;
+	const int centerY = y + radius;
+	SDL_SetRenderDrawColor(renderer, 255, 238, 100, 255);
+	for (int dy = -radius; dy <= radius; ++dy)
+	{
+		int span = (int)std::sqrt((double)(radius * radius - dy * dy));
+		SDL_RenderDrawLine(renderer, centerX - span, centerY + dy, centerX + span, centerY + dy);
+	}
+
+	SDL_SetRenderDrawColor(renderer, 255, 220, 72, 255);
+	SDL_RenderDrawLine(renderer, centerX + radius + 2, centerY - 2, centerX + radius + 8, centerY - 2);
+	SDL_RenderDrawLine(renderer, centerX - radius - 8, centerY - 2, centerX - radius - 2, centerY - 2);
+	SDL_RenderDrawLine(renderer, centerX - 2, centerY + radius + 2, centerX - 2, centerY + radius + 8);
+	SDL_RenderDrawLine(renderer, centerX - 2, centerY - radius - 8, centerX - 2, centerY - radius - 2);
+}
+
+static void DrawRainbow(SDL_Renderer* renderer, int x, int y, int p)
+{
+	const SDL_Color colors[6] = {
+		{ 255, 92, 92, 255 },
+		{ 255, 164, 64, 255 },
+		{ 255, 236, 96, 255 },
+		{ 96, 220, 128, 255 },
+		{ 96, 172, 255, 255 },
+		{ 184, 120, 255, 255 }
+	};
+	const int centerX = x + 60 * p;
+	const int centerY = y + 34 * p;
+	for (int i = 0; i < 6; ++i)
+	{
+		SDL_SetRenderDrawColor(renderer, colors[i].r, colors[i].g, colors[i].b, colors[i].a);
+		const int outerRadius = 30 * p - i * (4 * p);
+		const int innerRadius = std::max(0, outerRadius - (4 * p));
+		for (int dy = 0; dy <= outerRadius; ++dy)
+		{
+			int outerSpan = (int)std::sqrt((double)(outerRadius * outerRadius - dy * dy));
+			int innerSpan = 0;
+			if (dy <= innerRadius)
+			{
+				innerSpan = (int)std::sqrt((double)(innerRadius * innerRadius - dy * dy));
+			}
+			SDL_RenderDrawLine(renderer, centerX - outerSpan, centerY - dy, centerX - innerSpan, centerY - dy);
+			SDL_RenderDrawLine(renderer, centerX + innerSpan, centerY - dy, centerX + outerSpan, centerY - dy);
+		}
+	}
+}
+
+static void DrawFlowerCluster(SDL_Renderer* renderer, int x, int groundY, int p)
+{
+	SDL_Rect r;
+	SDL_SetRenderDrawColor(renderer, 52, 180, 84, 255);
+	r = { x + (4 * p), groundY - (8 * p), 2 * p, 8 * p }; SDL_RenderFillRect(renderer, &r);
+	r = { x + (12 * p), groundY - (10 * p), 2 * p, 10 * p }; SDL_RenderFillRect(renderer, &r);
+	r = { x + (22 * p), groundY - (7 * p), 2 * p, 7 * p }; SDL_RenderFillRect(renderer, &r);
+
+	SDL_SetRenderDrawColor(renderer, 255, 84, 140, 255);
+	r = { x, groundY - (12 * p), 6 * p, 6 * p }; SDL_RenderFillRect(renderer, &r);
+	r = { x + (2 * p), groundY - (14 * p), 6 * p, 6 * p }; SDL_RenderFillRect(renderer, &r);
+
+	SDL_SetRenderDrawColor(renderer, 255, 208, 92, 255);
+	r = { x + (10 * p), groundY - (14 * p), 6 * p, 6 * p }; SDL_RenderFillRect(renderer, &r);
+	r = { x + (12 * p), groundY - (16 * p), 6 * p, 6 * p }; SDL_RenderFillRect(renderer, &r);
+
+	SDL_SetRenderDrawColor(renderer, 180, 120, 255, 255);
+	r = { x + (20 * p), groundY - (11 * p), 6 * p, 6 * p }; SDL_RenderFillRect(renderer, &r);
+	r = { x + (22 * p), groundY - (13 * p), 6 * p, 6 * p }; SDL_RenderFillRect(renderer, &r);
+}
+
 static void DrawGlyph(SDL_Renderer* renderer, int x, int y, int scale, char ch)
 {
 	static const char* G0[7] = { "11111", "10001", "10001", "10001", "10001", "10001", "11111" };
@@ -497,7 +571,9 @@ static void DrawGlyph(SDL_Renderer* renderer, int x, int y, int scale, char ch)
 	static const char* G7[7] = { "11111", "00001", "00010", "00100", "01000", "01000", "01000" };
 	static const char* G8[7] = { "11111", "10001", "10001", "11111", "10001", "10001", "11111" };
 	static const char* G9[7] = { "11111", "10001", "10001", "11111", "00001", "00001", "11111" };
+	static const char* GG[7] = { "01110", "10001", "10000", "10011", "10001", "10001", "01110" };
 	static const char* GA[7] = { "01110", "10001", "10001", "11111", "10001", "10001", "10001" };
+	static const char* GF[7] = { "11111", "10000", "10000", "11110", "10000", "10000", "10000" };
 	static const char* GD[7] = { "11110", "10001", "10001", "10001", "10001", "10001", "11110" };
 	static const char* GC[7] = { "01111", "10000", "10000", "10000", "10000", "10000", "01111" };
 	static const char* GE[7] = { "11111", "10000", "10000", "11110", "10000", "10000", "11111" };
@@ -530,7 +606,9 @@ static void DrawGlyph(SDL_Renderer* renderer, int x, int y, int scale, char ch)
 	case '7': g = G7; break;
 	case '8': g = G8; break;
 	case '9': g = G9; break;
+	case 'G': g = GG; break;
 	case 'A': g = GA; break;
+	case 'F': g = GF; break;
 	case 'D': g = GD; break;
 	case 'C': g = GC; break;
 	case 'E': g = GE; break;
@@ -756,10 +834,16 @@ void Game::update()
 
 	cloudParallaxX -= playerVelX * 0.35f;
 	treeParallaxX -= playerVelX * 0.75f;
+	skyParallaxX -= playerVelX * 0.12f;
+	flowerParallaxX -= playerVelX * 1.10f;
 	if (cloudParallaxX <= -SCREEN_WIDTH) cloudParallaxX += SCREEN_WIDTH;
 	if (cloudParallaxX >= SCREEN_WIDTH) cloudParallaxX -= SCREEN_WIDTH;
 	if (treeParallaxX <= -SCREEN_WIDTH) treeParallaxX += SCREEN_WIDTH;
 	if (treeParallaxX >= SCREEN_WIDTH) treeParallaxX -= SCREEN_WIDTH;
+	if (skyParallaxX <= -SCREEN_WIDTH) skyParallaxX += SCREEN_WIDTH;
+	if (skyParallaxX >= SCREEN_WIDTH) skyParallaxX -= SCREEN_WIDTH;
+	if (flowerParallaxX <= -SCREEN_WIDTH) flowerParallaxX += SCREEN_WIDTH;
+	if (flowerParallaxX >= SCREEN_WIDTH) flowerParallaxX -= SCREEN_WIDTH;
 
 	if (player)
 	{
@@ -965,6 +1049,10 @@ void Game::render()
 	}
 	SDL_RenderClear(renderer);
 
+	int skyOffset = (int)skyParallaxX;
+	// DrawSun(renderer, 762 + skyOffset + shakeX, 72 + shakeY, 6);
+	// DrawRainbow(renderer, 704 + skyOffset + shakeX, 126 + shakeY, 3);
+
 	int cx = (int)cloudParallaxX;
 	DrawCloud(renderer, 90 + cx + shakeX, 86 + shakeY, 6);
 	DrawCloud(renderer, 350 + cx + shakeX, 118 + shakeY, 5);
@@ -987,6 +1075,20 @@ void Game::render()
 	DrawTree(renderer, 130 + tx - SCREEN_WIDTH + shakeX, groundTopY + shakeY, 8);
 	DrawTree(renderer, 420 + tx - SCREEN_WIDTH + shakeX, groundTopY + shakeY, 7);
 	DrawTree(renderer, 790 + tx - SCREEN_WIDTH + shakeX, groundTopY + shakeY, 9);
+
+	int flowerOffset = (int)flowerParallaxX;
+	DrawFlowerCluster(renderer, 36 + flowerOffset + shakeX, groundTopY + shakeY, 5);
+	DrawFlowerCluster(renderer, 236 + flowerOffset + shakeX, groundTopY + shakeY, 5);
+	DrawFlowerCluster(renderer, 472 + flowerOffset + shakeX, groundTopY + shakeY, 5);
+	DrawFlowerCluster(renderer, 708 + flowerOffset + shakeX, groundTopY + shakeY, 5);
+	DrawFlowerCluster(renderer, 36 + flowerOffset + SCREEN_WIDTH + shakeX, groundTopY + shakeY, 5);
+	DrawFlowerCluster(renderer, 236 + flowerOffset + SCREEN_WIDTH + shakeX, groundTopY + shakeY, 5);
+	DrawFlowerCluster(renderer, 472 + flowerOffset + SCREEN_WIDTH + shakeX, groundTopY + shakeY, 5);
+	DrawFlowerCluster(renderer, 708 + flowerOffset + SCREEN_WIDTH + shakeX, groundTopY + shakeY, 5);
+	DrawFlowerCluster(renderer, 36 + flowerOffset - SCREEN_WIDTH + shakeX, groundTopY + shakeY, 5);
+	DrawFlowerCluster(renderer, 236 + flowerOffset - SCREEN_WIDTH + shakeX, groundTopY + shakeY, 5);
+	DrawFlowerCluster(renderer, 472 + flowerOffset - SCREEN_WIDTH + shakeX, groundTopY + shakeY, 5);
+	DrawFlowerCluster(renderer, 708 + flowerOffset - SCREEN_WIDTH + shakeX, groundTopY + shakeY, 5);
 
 	if (butterflyActive && butterflyTex)
 	{
@@ -1031,7 +1133,7 @@ void Game::render()
 	int timeSeconds = timeLeft % 60;
 	std::snprintf(scoreText, sizeof(scoreText), "SCORE %06d", scoreCounter);
 	std::snprintf(timeText, sizeof(timeText), "TIME %02d:%02d", timeMinutes, timeSeconds);
-	std::snprintf(butterflyText, sizeof(butterflyText), "X %02d -> %02d", butterflyCapturedCount, butterflyGoal);
+	std::snprintf(butterflyText, sizeof(butterflyText), "X %02d OF %02d", butterflyCapturedCount, butterflyGoal);
 
 	SDL_SetRenderDrawColor(renderer, 58, 94, 161, 255);
 	DrawText(renderer, 26, 18, 4, scoreText);
@@ -1119,19 +1221,19 @@ void Game::render()
 	if (levelCleared)
 	{
 		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
-		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 180);
+		SDL_SetRenderDrawColor(renderer, 255, 140, 190, 170);
 		SDL_Rect clearShade = { 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT };
 		SDL_RenderFillRect(renderer, &clearShade);
 		if (butterflyWinFrames > 0)
 		{
-			SDL_SetRenderDrawColor(renderer, 255, 248, 96, 120);
+			SDL_SetRenderDrawColor(renderer, 255, 220, 235, 90);
 			SDL_RenderFillRect(renderer, &clearShade);
 		}
 		SDL_SetRenderDrawColor(renderer, 255, 248, 96, 255);
 		DrawText(renderer, SCREEN_WIDTH / 2 - 156, SCREEN_HEIGHT / 2 - 40, 5, "LEVEL CLEAR");
 		SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-		DrawText(renderer, SCREEN_WIDTH / 2 - 168, SCREEN_HEIGHT / 2 + 6, 4, "NEXT STAGE LOADING");
-		DrawText(renderer, SCREEN_WIDTH / 2 - 120, SCREEN_HEIGHT / 2 + 34, 3, "PRESS ENTER TO PAUSE");
+		DrawText(renderer, SCREEN_WIDTH / 2 - 168, SCREEN_HEIGHT / 2 + 16, 4, "NEXT STAGE LOADING");
+		DrawText(renderer, SCREEN_WIDTH / 2 - 120, SCREEN_HEIGHT / 2 + 58, 3, "PRESS ENTER TO PAUSE");
 		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
 	}
 
