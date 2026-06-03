@@ -1,0 +1,78 @@
+name: Build Windows Artifact
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up MSYS2
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: MINGW64
+          update: true
+          install: >-
+            mingw-w64-x86_64-toolchain
+            mingw-w64-x86_64-cmake
+            mingw-w64-x86_64-ninja
+            mingw-w64-x86_64-pkgconf
+            mingw-w64-x86_64-SDL2
+            mingw-w64-x86_64-SDL2_image
+            zip
+
+      - name: Configure and build
+        shell: msys2 {0}
+        run: |
+          cmake -S BirchEngine -B build-win -G Ninja -DCMAKE_BUILD_TYPE=Release
+          cmake --build build-win -j
+
+      - name: Package Windows zip
+        shell: msys2 {0}
+        run: |
+          set -euo pipefail
+          PACKAGE_DIR="package/PrincessOwliviaCB-Windows-x64"
+          mkdir -p "$PACKAGE_DIR"
+
+          cp build-win/PrincessOwliviaCB.exe "$PACKAGE_DIR/"
+          cp -r BirchEngine/assets "$PACKAGE_DIR/assets"
+
+          # Copy required runtime DLLs resolved by ldd.
+          ldd build-win/PrincessOwliviaCB.exe \
+            | tr ' ' '\n' \
+            | grep '^/mingw64/bin/.*\\.dll$' \
+            | sort -u \
+            | while read -r dll; do
+                cp "$dll" "$PACKAGE_DIR/"
+              done
+
+          if [ -f /mingw64/bin/SDL2.dll ]; then cp /mingw64/bin/SDL2.dll "$PACKAGE_DIR/"; fi
+          if [ -f /mingw64/bin/SDL2_image.dll ]; then cp /mingw64/bin/SDL2_image.dll "$PACKAGE_DIR/"; fi
+
+          RELEASE_VERSION="${GITHUB_REF_NAME}"
+          if ! echo "$RELEASE_VERSION" | grep -Eq '^v[0-9]'; then
+            RELEASE_VERSION="dev-${GITHUB_SHA:0:7}"
+          fi
+
+          ARTIFACT_NAME="PrincessOwliviaCB-Windows-x64-${RELEASE_VERSION}.zip"
+          mkdir -p releases/windows
+          (cd package && zip -r "../releases/windows/${ARTIFACT_NAME}" "PrincessOwliviaCB-Windows-x64")
+
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: PrincessOwliviaCB-Windows-x64
+          path: releases/windows/*.zip
+          if-no-files-found: error

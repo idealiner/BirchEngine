@@ -68,6 +68,16 @@ This creates:
 
 The archive contains an AppDir with bundled runtime libraries and assets.
 
+### Windows Build Artifact (CI)
+
+The workflow at `.github/workflows/build-windows.yml` builds and packages a Windows zip on pushes/tags.
+
+In GitHub:
+
+- Open Actions
+- Run or inspect `Build Windows Artifact`
+- Download artifact `PrincessOwliviaCB-Windows-x64`
+
 ## Is a Single Self-Contained Desktop Executable Possible?
 
 Yes, with caveats:
