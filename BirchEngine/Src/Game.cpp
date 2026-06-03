@@ -87,22 +87,32 @@ struct MusicNote
 
 static std::array<SynthVoice, AUDIO_VOICES> audioVoices;
 static const std::array<MusicNote, 16> MUSIC_PATTERN = {
-	MusicNote{ 392.0, 180, 0, 0.035 },
-	MusicNote{ 440.0, 180, 0, 0.035 },
-	MusicNote{ 523.25, 180, 0, 0.035 },
-	MusicNote{ 587.33, 180, 0, 0.035 },
-	MusicNote{ 659.25, 180, 0, 0.035 },
-	MusicNote{ 587.33, 180, 0, 0.035 },
-	MusicNote{ 523.25, 180, 0, 0.035 },
-	MusicNote{ 494.0, 180, 0, 0.035 },
-	MusicNote{ 440.0, 180, 0, 0.035 },
-	MusicNote{ 392.0, 180, 0, 0.035 },
-	MusicNote{ 523.25, 180, 0, 0.035 },
-	MusicNote{ 587.33, 180, 0, 0.035 },
-	MusicNote{ 659.25, 180, 0, 0.035 },
-	MusicNote{ 783.99, 180, 0, 0.035 },
-	MusicNote{ 659.25, 180, 0, 0.035 },
-	MusicNote{ 587.33, 240, 0, 0.035 }
+	MusicNote{ 392.0, 240, 0, 0.028 },
+	MusicNote{ 440.0, 240, 0, 0.028 },
+	MusicNote{ 523.25, 240, 1, 0.026 },
+	MusicNote{ 587.33, 240, 0, 0.028 },
+	MusicNote{ 659.25, 240, 0, 0.028 },
+	MusicNote{ 587.33, 240, 1, 0.026 },
+	MusicNote{ 523.25, 240, 0, 0.028 },
+	MusicNote{ 494.0, 240, 1, 0.026 },
+	MusicNote{ 440.0, 240, 0, 0.028 },
+	MusicNote{ 392.0, 240, 0, 0.028 },
+	MusicNote{ 523.25, 240, 1, 0.026 },
+	MusicNote{ 587.33, 240, 0, 0.028 },
+	MusicNote{ 659.25, 240, 0, 0.028 },
+	MusicNote{ 783.99, 240, 1, 0.026 },
+	MusicNote{ 659.25, 240, 0, 0.028 },
+	MusicNote{ 587.33, 360, 0, 0.028 }
+};
+static const std::array<MusicNote, 8> CLEAR_MUSIC_PATTERN = {
+	MusicNote{ 523.25, 180, 0, 0.05 },
+	MusicNote{ 659.25, 180, 0, 0.05 },
+	MusicNote{ 783.99, 180, 0, 0.055 },
+	MusicNote{ 1046.5, 240, 0, 0.06 },
+	MusicNote{ 783.99, 180, 0, 0.055 },
+	MusicNote{ 1046.5, 180, 0, 0.06 },
+	MusicNote{ 1318.5, 220, 0, 0.065 },
+	MusicNote{ 1568.0, 320, 0, 0.07 }
 };
 static int musicPatternIndex = 0;
 static int musicSamplesLeft = 0;
@@ -110,6 +120,7 @@ static double musicPhase = 0.0;
 static double musicFrequency = 0.0;
 static int musicWaveform = 0;
 static double musicVolume = 0.0;
+static int musicTrackMode = 0;
 
 static bool levelTransitionActive = false;
 
@@ -202,20 +213,51 @@ static void ResetButterflyFlight()
 
 static void StartMusicNote()
 {
-	if (musicPatternIndex < 0 || musicPatternIndex >= (int)MUSIC_PATTERN.size())
+	if (musicTrackMode == 2)
 	{
+		musicSamplesLeft = 0;
+		return;
+	}
+
+	const MusicNote* track = nullptr;
+	int trackSize = 0;
+	bool looping = true;
+	if (musicTrackMode == 1)
+	{
+		track = CLEAR_MUSIC_PATTERN.data();
+		trackSize = (int)CLEAR_MUSIC_PATTERN.size();
+		looping = false;
+	}
+	else
+	{
+		track = MUSIC_PATTERN.data();
+		trackSize = (int)MUSIC_PATTERN.size();
+	}
+
+	if (musicPatternIndex < 0 || musicPatternIndex >= trackSize)
+	{
+		if (!looping)
+		{
+			musicTrackMode = 2;
+			musicSamplesLeft = 0;
+			return;
+		}
 		musicPatternIndex = 0;
 	}
 
-	const MusicNote& note = MUSIC_PATTERN[(size_t)musicPatternIndex];
+	const MusicNote& note = track[(size_t)musicPatternIndex];
 	float pressure = 1.0f - ((float)std::max(0, currentTimeLeft) / (float)LEVEL_TIME_SECONDS);
-	float tempoScale = 1.0f + pressure * 0.85f;
+	float tempoScale = (musicTrackMode == 1) ? 1.0f : (0.68f + pressure * 0.22f);
 	musicFrequency = note.frequency;
 	musicWaveform = note.waveform;
 	musicVolume = note.volume;
 	musicSamplesLeft = std::max(1, (int)((note.duration * AUDIO_SAMPLE_RATE / 1000.0) / tempoScale));
 	musicPhase = 0.0;
-	musicPatternIndex = (musicPatternIndex + 1) % (int)MUSIC_PATTERN.size();
+	musicPatternIndex++;
+	if (musicPatternIndex >= trackSize && looping)
+	{
+		musicPatternIndex = 0;
+	}
 }
 
 static void PlayTone(double frequency, int durationMs, double volume, int waveform, double decay)
@@ -246,32 +288,32 @@ static void PlayTone(double frequency, int durationMs, double volume, int wavefo
 
 static void PlayStompSfx()
 {
-	PlayTone(880.0, 40, 0.95, 0, 1.0);
-	PlayTone(220.0, 120, 0.80, 0, 1.0);
-	PlayTone(110.0, 160, 0.60, 3, 1.0);
+	PlayTone(196.0, 90, 0.95, 0, 1.0);
+	PlayTone(98.0, 150, 0.85, 1, 1.0);
+	PlayTone(55.0, 210, 0.70, 2, 1.0);
 }
 
 static void PlayButterflyCaptureSfx()
 {
-	PlayTone(784.0, 50, 0.65, 0, 1.0);
-	PlayTone(988.0, 55, 0.70, 0, 1.0);
-	PlayTone(1318.5, 70, 0.78, 0, 1.0);
+	PlayTone(784.0, 50, 0.60, 2, 1.0);
+	PlayTone(988.0, 50, 0.60, 2, 1.0);
+	PlayTone(1318.5, 60, 0.70, 0, 1.0);
 }
 
 static void PlayEnemyHitSfx()
 {
-	PlayTone(196.0, 45, 0.80, 3, 1.0);
-	PlayTone(164.0, 45, 0.80, 3, 1.0);
-	PlayTone(130.0, 45, 0.80, 3, 1.0);
-	PlayTone(98.0, 120, 0.65, 3, 1.0);
+	PlayTone(220.0, 35, 0.85, 3, 1.0);
+	PlayTone(180.0, 40, 0.80, 3, 1.0);
+	PlayTone(140.0, 50, 0.78, 3, 1.0);
+	PlayTone(98.0, 90, 0.70, 0, 1.0);
 }
 
 static void PlayWinSfx()
 {
-	PlayTone(523.25, 90, 0.55, 0, 1.0);
-	PlayTone(659.25, 90, 0.55, 0, 1.0);
-	PlayTone(783.99, 100, 0.60, 0, 1.0);
-	PlayTone(1046.5, 160, 0.70, 0, 1.0);
+	PlayTone(523.25, 70, 0.50, 0, 1.0);
+	PlayTone(659.25, 70, 0.52, 0, 1.0);
+	PlayTone(783.99, 80, 0.56, 0, 1.0);
+	PlayTone(1046.5, 140, 0.62, 0, 1.0);
 }
 
 static void ResetLevelState(bool incrementLevel)
@@ -280,6 +322,11 @@ static void ResetLevelState(bool incrementLevel)
 	{
 		levelNumber++;
 	}
+
+	musicTrackMode = 0;
+	musicPatternIndex = 0;
+	musicSamplesLeft = 0;
+	musicPhase = 0.0;
 
 	butterflyGoal = 10 + (levelNumber - 1) * 5;
 	if (butterflyGoal > 25)
@@ -342,6 +389,10 @@ static void AudioCallback(void* userdata, Uint8* stream, int len)
 	std::memset(stream, 0, len);
 	float* out = reinterpret_cast<float*>(stream);
 	int samples = len / sizeof(float);
+	if (isPaused)
+	{
+		return;
+	}
 
 	for (int i = 0; i < samples; ++i)
 	{
@@ -866,6 +917,10 @@ void Game::update()
 				levelClearFrames = 180;
 				levelRestartFrames = 0;
 				butterflyWinFrames = 60;
+				musicTrackMode = 1;
+				musicPatternIndex = 0;
+				musicSamplesLeft = 0;
+				musicPhase = 0.0;
 				PlayWinSfx();
 			}
 		}
