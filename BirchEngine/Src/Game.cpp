@@ -850,6 +850,15 @@ void Game::update()
 		prevPlayerRect = player->GetHitbox();
 		player->SetVelocity(playerVelX, playerVelY);
 		player->Update();
+
+		SDL_Rect playerBounds = player->GetBounds();
+		int clampedX = std::clamp(playerBounds.x, 0, SCREEN_WIDTH - playerBounds.w);
+		int clampedY = std::clamp(playerBounds.y, 0, SCREEN_HEIGHT - playerBounds.h);
+		if (clampedX != playerBounds.x || clampedY != playerBounds.y)
+		{
+			player->SetPosition(clampedX, clampedY);
+			player->Update();
+		}
 	}
 
 	if (enemy && enemyActive)

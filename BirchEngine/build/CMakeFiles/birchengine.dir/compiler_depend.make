@@ -221,13 +221,22 @@ CMakeFiles/birchengine.dir/Src/Game.cpp.o: /home/uncannyvalleypictures/myprogram
   /usr/include/x86_64-linux-gnu/bits/pthreadtypes-arch.h \
   /usr/include/x86_64-linux-gnu/bits/pthreadtypes.h \
   /usr/include/x86_64-linux-gnu/bits/sched.h \
+  /usr/include/x86_64-linux-gnu/bits/select-decl.h \
   /usr/include/x86_64-linux-gnu/bits/select.h \
+  /usr/include/x86_64-linux-gnu/bits/select2.h \
   /usr/include/x86_64-linux-gnu/bits/setjmp.h \
   /usr/include/x86_64-linux-gnu/bits/stdint-intn.h \
   /usr/include/x86_64-linux-gnu/bits/stdint-least.h \
   /usr/include/x86_64-linux-gnu/bits/stdint-uintn.h \
+  /usr/include/x86_64-linux-gnu/bits/stdio.h \
+  /usr/include/x86_64-linux-gnu/bits/stdio2-decl.h \
+  /usr/include/x86_64-linux-gnu/bits/stdio2.h \
   /usr/include/x86_64-linux-gnu/bits/stdio_lim.h \
+  /usr/include/x86_64-linux-gnu/bits/stdlib-bsearch.h \
   /usr/include/x86_64-linux-gnu/bits/stdlib-float.h \
+  /usr/include/x86_64-linux-gnu/bits/stdlib.h \
+  /usr/include/x86_64-linux-gnu/bits/string_fortified.h \
+  /usr/include/x86_64-linux-gnu/bits/strings_fortified.h \
   /usr/include/x86_64-linux-gnu/bits/struct_mutex.h \
   /usr/include/x86_64-linux-gnu/bits/struct_rwlock.h \
   /usr/include/x86_64-linux-gnu/bits/thread-shared-types.h \
@@ -265,6 +274,8 @@ CMakeFiles/birchengine.dir/Src/Game.cpp.o: /home/uncannyvalleypictures/myprogram
   /usr/include/x86_64-linux-gnu/bits/waitflags.h \
   /usr/include/x86_64-linux-gnu/bits/waitstatus.h \
   /usr/include/x86_64-linux-gnu/bits/wchar.h \
+  /usr/include/x86_64-linux-gnu/bits/wchar2-decl.h \
+  /usr/include/x86_64-linux-gnu/bits/wchar2.h \
   /usr/include/x86_64-linux-gnu/bits/wctype-wchar.h \
   /usr/include/x86_64-linux-gnu/bits/wordsize.h \
   /usr/include/x86_64-linux-gnu/c++/13/bits/atomic_word.h \
@@ -592,13 +603,22 @@ CMakeFiles/birchengine.dir/Src/GameObject.cpp.o: /home/uncannyvalleypictures/myp
   /usr/include/x86_64-linux-gnu/bits/pthreadtypes-arch.h \
   /usr/include/x86_64-linux-gnu/bits/pthreadtypes.h \
   /usr/include/x86_64-linux-gnu/bits/sched.h \
+  /usr/include/x86_64-linux-gnu/bits/select-decl.h \
   /usr/include/x86_64-linux-gnu/bits/select.h \
+  /usr/include/x86_64-linux-gnu/bits/select2.h \
   /usr/include/x86_64-linux-gnu/bits/setjmp.h \
   /usr/include/x86_64-linux-gnu/bits/stdint-intn.h \
   /usr/include/x86_64-linux-gnu/bits/stdint-least.h \
   /usr/include/x86_64-linux-gnu/bits/stdint-uintn.h \
+  /usr/include/x86_64-linux-gnu/bits/stdio.h \
+  /usr/include/x86_64-linux-gnu/bits/stdio2-decl.h \
+  /usr/include/x86_64-linux-gnu/bits/stdio2.h \
   /usr/include/x86_64-linux-gnu/bits/stdio_lim.h \
+  /usr/include/x86_64-linux-gnu/bits/stdlib-bsearch.h \
   /usr/include/x86_64-linux-gnu/bits/stdlib-float.h \
+  /usr/include/x86_64-linux-gnu/bits/stdlib.h \
+  /usr/include/x86_64-linux-gnu/bits/string_fortified.h \
+  /usr/include/x86_64-linux-gnu/bits/strings_fortified.h \
   /usr/include/x86_64-linux-gnu/bits/struct_mutex.h \
   /usr/include/x86_64-linux-gnu/bits/struct_rwlock.h \
   /usr/include/x86_64-linux-gnu/bits/thread-shared-types.h \
@@ -636,6 +656,8 @@ CMakeFiles/birchengine.dir/Src/GameObject.cpp.o: /home/uncannyvalleypictures/myp
   /usr/include/x86_64-linux-gnu/bits/waitflags.h \
   /usr/include/x86_64-linux-gnu/bits/waitstatus.h \
   /usr/include/x86_64-linux-gnu/bits/wchar.h \
+  /usr/include/x86_64-linux-gnu/bits/wchar2-decl.h \
+  /usr/include/x86_64-linux-gnu/bits/wchar2.h \
   /usr/include/x86_64-linux-gnu/bits/wctype-wchar.h \
   /usr/include/x86_64-linux-gnu/bits/wordsize.h \
   /usr/include/x86_64-linux-gnu/c++/13/bits/atomic_word.h \
@@ -962,13 +984,22 @@ CMakeFiles/birchengine.dir/Src/TextureManager.cpp.o: /home/uncannyvalleypictures
   /usr/include/x86_64-linux-gnu/bits/pthreadtypes-arch.h \
   /usr/include/x86_64-linux-gnu/bits/pthreadtypes.h \
   /usr/include/x86_64-linux-gnu/bits/sched.h \
+  /usr/include/x86_64-linux-gnu/bits/select-decl.h \
   /usr/include/x86_64-linux-gnu/bits/select.h \
+  /usr/include/x86_64-linux-gnu/bits/select2.h \
   /usr/include/x86_64-linux-gnu/bits/setjmp.h \
   /usr/include/x86_64-linux-gnu/bits/stdint-intn.h \
   /usr/include/x86_64-linux-gnu/bits/stdint-least.h \
   /usr/include/x86_64-linux-gnu/bits/stdint-uintn.h \
+  /usr/include/x86_64-linux-gnu/bits/stdio.h \
+  /usr/include/x86_64-linux-gnu/bits/stdio2-decl.h \
+  /usr/include/x86_64-linux-gnu/bits/stdio2.h \
   /usr/include/x86_64-linux-gnu/bits/stdio_lim.h \
+  /usr/include/x86_64-linux-gnu/bits/stdlib-bsearch.h \
   /usr/include/x86_64-linux-gnu/bits/stdlib-float.h \
+  /usr/include/x86_64-linux-gnu/bits/stdlib.h \
+  /usr/include/x86_64-linux-gnu/bits/string_fortified.h \
+  /usr/include/x86_64-linux-gnu/bits/strings_fortified.h \
   /usr/include/x86_64-linux-gnu/bits/struct_mutex.h \
   /usr/include/x86_64-linux-gnu/bits/struct_rwlock.h \
   /usr/include/x86_64-linux-gnu/bits/thread-shared-types.h \
@@ -1006,6 +1037,8 @@ CMakeFiles/birchengine.dir/Src/TextureManager.cpp.o: /home/uncannyvalleypictures
   /usr/include/x86_64-linux-gnu/bits/waitflags.h \
   /usr/include/x86_64-linux-gnu/bits/waitstatus.h \
   /usr/include/x86_64-linux-gnu/bits/wchar.h \
+  /usr/include/x86_64-linux-gnu/bits/wchar2-decl.h \
+  /usr/include/x86_64-linux-gnu/bits/wchar2.h \
   /usr/include/x86_64-linux-gnu/bits/wctype-wchar.h \
   /usr/include/x86_64-linux-gnu/bits/wordsize.h \
   /usr/include/x86_64-linux-gnu/c++/13/bits/atomic_word.h \
@@ -1331,13 +1364,22 @@ CMakeFiles/birchengine.dir/Src/main.cpp.o: /home/uncannyvalleypictures/myprogram
   /usr/include/x86_64-linux-gnu/bits/pthreadtypes-arch.h \
   /usr/include/x86_64-linux-gnu/bits/pthreadtypes.h \
   /usr/include/x86_64-linux-gnu/bits/sched.h \
+  /usr/include/x86_64-linux-gnu/bits/select-decl.h \
   /usr/include/x86_64-linux-gnu/bits/select.h \
+  /usr/include/x86_64-linux-gnu/bits/select2.h \
   /usr/include/x86_64-linux-gnu/bits/setjmp.h \
   /usr/include/x86_64-linux-gnu/bits/stdint-intn.h \
   /usr/include/x86_64-linux-gnu/bits/stdint-least.h \
   /usr/include/x86_64-linux-gnu/bits/stdint-uintn.h \
+  /usr/include/x86_64-linux-gnu/bits/stdio.h \
+  /usr/include/x86_64-linux-gnu/bits/stdio2-decl.h \
+  /usr/include/x86_64-linux-gnu/bits/stdio2.h \
   /usr/include/x86_64-linux-gnu/bits/stdio_lim.h \
+  /usr/include/x86_64-linux-gnu/bits/stdlib-bsearch.h \
   /usr/include/x86_64-linux-gnu/bits/stdlib-float.h \
+  /usr/include/x86_64-linux-gnu/bits/stdlib.h \
+  /usr/include/x86_64-linux-gnu/bits/string_fortified.h \
+  /usr/include/x86_64-linux-gnu/bits/strings_fortified.h \
   /usr/include/x86_64-linux-gnu/bits/struct_mutex.h \
   /usr/include/x86_64-linux-gnu/bits/struct_rwlock.h \
   /usr/include/x86_64-linux-gnu/bits/thread-shared-types.h \
@@ -1375,6 +1417,8 @@ CMakeFiles/birchengine.dir/Src/main.cpp.o: /home/uncannyvalleypictures/myprogram
   /usr/include/x86_64-linux-gnu/bits/waitflags.h \
   /usr/include/x86_64-linux-gnu/bits/waitstatus.h \
   /usr/include/x86_64-linux-gnu/bits/wchar.h \
+  /usr/include/x86_64-linux-gnu/bits/wchar2-decl.h \
+  /usr/include/x86_64-linux-gnu/bits/wchar2.h \
   /usr/include/x86_64-linux-gnu/bits/wctype-wchar.h \
   /usr/include/x86_64-linux-gnu/bits/wordsize.h \
   /usr/include/x86_64-linux-gnu/c++/13/bits/atomic_word.h \
@@ -1552,8 +1596,6 @@ CMakeFiles/birchengine.dir/Src/main.cpp.o: /home/uncannyvalleypictures/myprogram
 
 /usr/lib/gcc/x86_64-linux-gnu/13/include/cmpccxaddintrin.h:
 
-/usr/lib/gcc/x86_64-linux-gnu/13/include/clwbintrin.h:
-
 /usr/lib/gcc/x86_64-linux-gnu/13/include/cldemoteintrin.h:
 
 /usr/lib/gcc/x86_64-linux-gnu/13/include/bmiintrin.h:
@@ -1589,8 +1631,6 @@ CMakeFiles/birchengine.dir/Src/main.cpp.o: /home/uncannyvalleypictures/myprogram
 /usr/lib/gcc/x86_64-linux-gnu/13/include/avx512bf16intrin.h:
 
 /usr/lib/gcc/x86_64-linux-gnu/13/include/avx5124vnniwintrin.h:
-
-/usr/lib/gcc/x86_64-linux-gnu/13/include/avx2intrin.h:
 
 /usr/lib/gcc/x86_64-linux-gnu/13/include/amxtileintrin.h:
 
@@ -1642,15 +1682,27 @@ CMakeFiles/birchengine.dir/Src/main.cpp.o: /home/uncannyvalleypictures/myprogram
 
 /usr/include/x86_64-linux-gnu/bits/wctype-wchar.h:
 
+/usr/include/x86_64-linux-gnu/bits/wchar2-decl.h:
+
 /usr/include/x86_64-linux-gnu/bits/wchar.h:
 
 /usr/include/x86_64-linux-gnu/bits/waitflags.h:
 
 /usr/include/x86_64-linux-gnu/bits/typesizes.h:
 
+/usr/include/x86_64-linux-gnu/bits/types/time_t.h:
+
+/usr/include/x86_64-linux-gnu/bits/types/struct_itimerspec.h:
+
+/usr/lib/gcc/x86_64-linux-gnu/13/include/avx512fp16intrin.h:
+
+/usr/include/x86_64-linux-gnu/bits/types/sigset_t.h:
+
 /usr/include/c++/13/cerrno:
 
 /usr/include/x86_64-linux-gnu/bits/stdint-least.h:
+
+/usr/include/x86_64-linux-gnu/bits/strings_fortified.h:
 
 /usr/include/x86_64-linux-gnu/bits/types/mbstate_t.h:
 
@@ -1689,8 +1741,6 @@ CMakeFiles/birchengine.dir/Src/main.cpp.o: /home/uncannyvalleypictures/myprogram
 /usr/include/c++/13/compare:
 
 /usr/include/c++/13/system_error:
-
-/usr/include/c++/13/bits/ptr_traits.h:
 
 /usr/include/c++/13/bits/predefined_ops.h:
 
@@ -1806,6 +1856,8 @@ CMakeFiles/birchengine.dir/Src/main.cpp.o: /home/uncannyvalleypictures/myprogram
 
 /usr/include/c++/13/bits/algorithmfwd.h:
 
+/usr/include/x86_64-linux-gnu/bits/wchar2.h:
+
 /usr/include/x86_64-linux-gnu/bits/fp-logb.h:
 
 /usr/include/c++/13/bit:
@@ -1819,6 +1871,10 @@ CMakeFiles/birchengine.dir/Src/main.cpp.o: /home/uncannyvalleypictures/myprogram
 /usr/include/SDL2/SDL_messagebox.h:
 
 /usr/include/SDL2/SDL_loadso.h:
+
+/usr/include/c++/13/bits/ptr_traits.h:
+
+/usr/include/x86_64-linux-gnu/bits/stdio2-decl.h:
 
 /usr/include/SDL2/SDL_joystick.h:
 
@@ -1846,10 +1902,6 @@ CMakeFiles/birchengine.dir/Src/main.cpp.o: /home/uncannyvalleypictures/myprogram
 
 /usr/include/SDL2/SDL_haptic.h:
 
-/usr/include/x86_64-linux-gnu/bits/types/struct___jmp_buf_tag.h:
-
-/usr/include/x86_64-linux-gnu/bits/types/clockid_t.h:
-
 /home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/Game.h:
 
 /usr/include/SDL2/SDL_locale.h:
@@ -1866,13 +1918,17 @@ CMakeFiles/birchengine.dir/Src/main.cpp.o: /home/uncannyvalleypictures/myprogram
 
 /usr/include/x86_64-linux-gnu/bits/floatn.h:
 
-/usr/include/x86_64-linux-gnu/bits/types/struct_itimerspec.h:
-
 /usr/include/c++/13/bits/string_view.tcc:
 
 /usr/include/x86_64-linux-gnu/bits/thread-shared-types.h:
 
 /usr/include/SDL2/SDL_guid.h:
+
+/usr/include/x86_64-linux-gnu/bits/types/struct___jmp_buf_tag.h:
+
+/usr/include/x86_64-linux-gnu/bits/types/clockid_t.h:
+
+/usr/include/x86_64-linux-gnu/bits/stdlib-bsearch.h:
 
 /usr/include/SDL2/SDL_sensor.h:
 
@@ -1958,12 +2014,6 @@ CMakeFiles/birchengine.dir/Src/main.cpp.o: /home/uncannyvalleypictures/myprogram
 
 /home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/TextureManager.h:
 
-/usr/lib/gcc/x86_64-linux-gnu/13/include/cetintrin.h:
-
-/usr/lib/gcc/x86_64-linux-gnu/13/include/avx512vlintrin.h:
-
-/usr/include/c++/13/cmath:
-
 /usr/include/SDL2/SDL_audio.h:
 
 /usr/include/SDL2/SDL_image.h:
@@ -1981,8 +2031,6 @@ CMakeFiles/birchengine.dir/Src/main.cpp.o: /home/uncannyvalleypictures/myprogram
 /usr/include/c++/13/bits/charconv.h:
 
 /usr/include/x86_64-linux-gnu/bits/types/__sigset_t.h:
-
-/usr/include/SDL2/SDL_metal.h:
 
 /usr/include/c++/13/bits/cxxabi_forced.h:
 
@@ -2048,6 +2096,10 @@ CMakeFiles/birchengine.dir/Src/main.cpp.o: /home/uncannyvalleypictures/myprogram
 
 /usr/include/c++/13/cctype:
 
+/usr/include/x86_64-linux-gnu/bits/types/struct_tm.h:
+
+/usr/include/c++/13/ext/atomicity.h:
+
 /usr/include/c++/13/tr1/gamma.tcc:
 
 /usr/include/c++/13/cstdlib:
@@ -2066,6 +2118,8 @@ CMakeFiles/birchengine.dir/Src/main.cpp.o: /home/uncannyvalleypictures/myprogram
 
 /usr/include/c++/13/debug/assertions.h:
 
+/usr/include/x86_64-linux-gnu/bits/select-decl.h:
+
 /usr/include/c++/13/exception:
 
 /usr/include/c++/13/bits/stl_pair.h:
@@ -2078,9 +2132,11 @@ CMakeFiles/birchengine.dir/Src/main.cpp.o: /home/uncannyvalleypictures/myprogram
 
 /usr/include/inttypes.h:
 
-/usr/lib/gcc/x86_64-linux-gnu/13/include/avx512fp16intrin.h:
+/usr/include/x86_64-linux-gnu/bits/types/struct_timeval.h:
 
-/usr/include/x86_64-linux-gnu/bits/types/sigset_t.h:
+/usr/include/c++/13/bits/stl_iterator.h:
+
+/usr/include/c++/13/ext/numeric_traits.h:
 
 /usr/lib/gcc/x86_64-linux-gnu/13/include/avx512ifmaintrin.h:
 
@@ -2188,17 +2244,17 @@ CMakeFiles/birchengine.dir/Src/main.cpp.o: /home/uncannyvalleypictures/myprogram
 
 /usr/include/string.h:
 
+/usr/include/x86_64-linux-gnu/bits/stdio.h:
+
 /usr/include/strings.h:
 
 /usr/include/x86_64-linux-gnu/bits/struct_rwlock.h:
 
 /usr/include/x86_64-linux-gnu/asm/errno.h:
 
-/usr/include/c++/13/bits/stl_iterator.h:
+/usr/include/SDL2/SDL_metal.h:
 
-/usr/include/c++/13/ext/numeric_traits.h:
-
-/usr/include/x86_64-linux-gnu/bits/types/struct_timeval.h:
+/usr/include/x86_64-linux-gnu/bits/stdlib.h:
 
 /usr/include/x86_64-linux-gnu/bits/byteswap.h:
 
@@ -2220,6 +2276,14 @@ CMakeFiles/birchengine.dir/Src/main.cpp.o: /home/uncannyvalleypictures/myprogram
 
 /usr/include/x86_64-linux-gnu/bits/sched.h:
 
+/usr/lib/gcc/x86_64-linux-gnu/13/include/cetintrin.h:
+
+/usr/lib/gcc/x86_64-linux-gnu/13/include/avx512vlintrin.h:
+
+/usr/include/c++/13/cmath:
+
+/usr/include/x86_64-linux-gnu/bits/select2.h:
+
 /usr/include/time.h:
 
 /usr/include/x86_64-linux-gnu/bits/setjmp.h:
@@ -2232,11 +2296,19 @@ CMakeFiles/birchengine.dir/Src/main.cpp.o: /home/uncannyvalleypictures/myprogram
 
 /usr/include/x86_64-linux-gnu/bits/stdint-uintn.h:
 
+/usr/lib/gcc/x86_64-linux-gnu/13/include/clwbintrin.h:
+
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:
+
 /usr/include/x86_64-linux-gnu/bits/timex.h:
 
 /usr/include/x86_64-linux-gnu/bits/stdio_lim.h:
 
 /usr/include/x86_64-linux-gnu/bits/types/FILE.h:
+
+/usr/lib/gcc/x86_64-linux-gnu/13/include/avx2intrin.h:
+
+/usr/include/x86_64-linux-gnu/bits/string_fortified.h:
 
 /usr/include/x86_64-linux-gnu/bits/struct_mutex.h:
 
@@ -2255,9 +2327,3 @@ CMakeFiles/birchengine.dir/Src/main.cpp.o: /home/uncannyvalleypictures/myprogram
 /usr/include/x86_64-linux-gnu/bits/types/cookie_io_functions_t.h:
 
 /usr/include/x86_64-linux-gnu/bits/types/locale_t.h:
-
-/usr/include/c++/13/ext/atomicity.h:
-
-/usr/include/x86_64-linux-gnu/bits/types/struct_tm.h:
-
-/usr/include/x86_64-linux-gnu/bits/types/time_t.h:

@@ -6,5 +6,5 @@ CXX_DEFINES =
 
 CXX_INCLUDES = -isystem /usr/include/SDL2 -isystem /usr/include/libpng16 -isystem /usr/include/webp
 
-CXX_FLAGS = -std=gnu++17 -D_REENTRANT
+CXX_FLAGS = -O3 -DNDEBUG -std=gnu++17 -D_REENTRANT
 
