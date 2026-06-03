@@ -15,6 +15,7 @@ public:
 	void Jump();
 	void SetPosition(int x, int y);
 	SDL_Rect GetBounds() const;
+	SDL_Rect GetHitbox() const;
 
 private:
 
@@ -25,6 +26,7 @@ private:
 
 	float jumpVel;
 	bool  onGround;
+	bool  canDoubleJump;
 	int   groundY;
 	bool  facingLeft;
 

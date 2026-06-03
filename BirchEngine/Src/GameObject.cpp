@@ -17,6 +17,7 @@ GameObject::GameObject(const char* texturesheet, SDL_Renderer* ren, int x, int y
 
 	jumpVel  = 0.0f;
 	onGround = true;
+	canDoubleJump = false;
 	groundY  = 0;
 	facingLeft = false;
 }
@@ -60,6 +61,7 @@ void GameObject::Update()
 			{
 				jumpVel  = 0.0f;
 				onGround = true;
+				canDoubleJump = false;
 			}
 		}
 	}
@@ -113,8 +115,14 @@ void GameObject::Jump()
 {
 	if (onGround)
 	{
-		jumpVel  = -13.0f;
-		onGround = false;
+		jumpVel       = -13.0f;
+		onGround      = false;
+		canDoubleJump = true;
+	}
+	else if (canDoubleJump)
+	{
+		jumpVel       = -13.0f;
+		canDoubleJump = false;
 	}
 }
 
@@ -127,6 +135,17 @@ void GameObject::SetPosition(int x, int y)
 SDL_Rect GameObject::GetBounds() const
 {
 	return destRect;
+}
+
+SDL_Rect GameObject::GetHitbox() const
+{
+	// 30px inset horizontally, 20px top, 10px bottom — tight body box
+	SDL_Rect hb;
+	hb.x = destRect.x + 30;
+	hb.y = destRect.y + 20;
+	hb.w = destRect.w - 60;
+	hb.h = destRect.h - 30;
+	return hb;
 }
 
 void GameObject::Render()

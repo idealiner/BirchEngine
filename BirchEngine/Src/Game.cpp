@@ -129,8 +129,8 @@ void Game::update()
 
 	if (player && enemy)
 	{
-		SDL_Rect playerRect = player->GetBounds();
-		SDL_Rect enemyRect  = enemy->GetBounds();
+		SDL_Rect playerRect = player->GetHitbox();
+		SDL_Rect enemyRect  = enemy->GetHitbox();
 		if (SDL_HasIntersection(&playerRect, &enemyRect) && playerFlickerFrames == 0)
 		{
 			playerFlickerFrames = 60;
