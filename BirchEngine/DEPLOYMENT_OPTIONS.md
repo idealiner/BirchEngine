@@ -17,7 +17,20 @@ emcmake cmake -S . -B build-web -DBIRCHENGINE_BUILD_WEB=ON -DCMAKE_BUILD_TYPE=Re
 cmake --build build-web -j
 ```
 
-Output should include `birchengine.html`, `.js`, `.wasm`, and preloaded assets.
+Output should include `PrincessOwliviaCB.html`, `.js`, `.wasm`, `.data`, and preloaded assets.
+
+### Fastest publish path
+
+The repository now includes a GitHub Pages workflow at `.github/workflows/deploy-pages.yml`.
+
+To publish publicly with the least manual work:
+
+1. Push `main` to GitHub.
+2. In GitHub, open Settings > Pages.
+3. Set Source to `GitHub Actions`.
+4. Wait for the `Deploy Web Build to Pages` workflow to finish.
+
+That will publish the web build and expose it at your GitHub Pages URL.
 
 ### Host
 

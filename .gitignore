@@ -1,9 +1,14 @@
 # Generated build output
 build/
 BirchEngine/build/
+build-web/
 
 # Packaged release artifacts
 dist/
 
 # Local cleanup staging
 trash/
+
+# Local toolchains and logs
+emsdk/
+web-build-errors.txt
