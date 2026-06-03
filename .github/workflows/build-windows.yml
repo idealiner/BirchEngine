@@ -49,13 +49,17 @@ jobs:
           cp build-win/PrincessOwliviaCB.exe "$PACKAGE_DIR/"
           cp -r BirchEngine/assets "$PACKAGE_DIR/assets"
 
-          # Copy required runtime DLLs resolved by ldd.
+          # Copy runtime DLLs resolved by ldd without failing on empty matches.
           ldd build-win/PrincessOwliviaCB.exe \
-            | tr ' ' '\n' \
-            | grep '^/mingw64/bin/.*\\.dll$' \
+            | awk '
+                /^\/mingw64\/bin\/.*\.dll$/ { print $1 }
+                /=> \/mingw64\/bin\/.*\.dll/ { print $(NF-1) }
+              ' \
             | sort -u \
             | while read -r dll; do
-                cp "$dll" "$PACKAGE_DIR/"
+                if [ -f "$dll" ]; then
+                  cp "$dll" "$PACKAGE_DIR/"
+                fi
               done
 
           if [ -f /mingw64/bin/SDL2.dll ]; then cp /mingw64/bin/SDL2.dll "$PACKAGE_DIR/"; fi
