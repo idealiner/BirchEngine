@@ -4,6 +4,7 @@
 #include <cstdio>
 #include <cstring>
 #include <cmath>
+#include <algorithm>
 
 /*SDL_Texture* playerTex;
 SDL_Rect srcR, destR;*/
@@ -17,6 +18,7 @@ int scoreCounter = 0;
 Uint32 gameStartTicks = 0;
 float cloudParallaxX = 0.0f;
 float treeParallaxX = 0.0f;
+
 SDL_Texture* butterflyTex = nullptr;
 bool butterflyActive = true;
 float butterflyX = 0.0f;
@@ -29,6 +31,24 @@ int butterflyCapturedCount = 0;
 int butterflyFxFrames = 0;
 int butterflyFxX = 0;
 int butterflyFxY = 0;
+
+int playerInvulnFrames = 0;
+int comboChain = 0;
+int freezeFrames = 0;
+int shakeFrames = 0;
+int floatingScoreFrames = 0;
+int floatingScoreX = 0;
+int floatingScoreY = 0;
+int floatingScoreValue = 0;
+bool isPaused = false;
+bool nearMissAwarded = false;
+int prevEnemyX = 0;
+float butterflySpeed = 3.0f;
+int enemySpeed = 2;
+Uint32 lastUpdateTicks = 0;
+float gameClockSeconds = 0.0f;
+int elapsedSeconds = 0;
+int currentTimeLeft = 0;
 
 static const int SCREEN_WIDTH = 1024;
 static const int SCREEN_HEIGHT = 768;
@@ -52,6 +72,12 @@ static float TriangleWave(float t)
 	}
 
 	return 3.0f - f * 4.0f;
+}
+
+static int CalcButterflyRespawnFrames(int elapsed)
+{
+	int stage30 = elapsed / 30;
+	return std::max(60, 150 - stage30 * 8);
 }
 
 static void DrawButterflyIcon(SDL_Renderer* renderer, int x, int y, int p)
@@ -214,7 +240,7 @@ void Game::init(const char* title, int width, int height, bool fullscreen)
 	renderer = nullptr;
 	player = nullptr;
 	enemy = nullptr;
-	
+
 	if (fullscreen)
 	{
 		flags = SDL_WINDOW_FULLSCREEN;
@@ -232,12 +258,6 @@ void Game::init(const char* title, int width, int height, bool fullscreen)
 		}
 	}
 
-	/*SDL_Surface* tmpSurface = IMG_Load("assets/megaman.png");
-	playerTex = SDL_CreateTextureFromSurface(renderer, tmpSurface);
-	SDL_FreeSurface(tmpSurface);
-
-	playerTex = TextureManager::LoadTexture("assets/megaman.png", renderer);*/
-
 	if (isRunning)
 	{
 		butterflyTex = TextureManager::LoadTexture("assets/coins.png", renderer);
@@ -252,7 +272,19 @@ void Game::init(const char* title, int width, int height, bool fullscreen)
 		treeParallaxX = 0.0f;
 		butterflyCapturedCount = 0;
 		butterflyFxFrames = 0;
+		playerInvulnFrames = 0;
+		comboChain = 0;
+		freezeFrames = 0;
+		shakeFrames = 0;
+		floatingScoreFrames = 0;
+		isPaused = false;
+		nearMissAwarded = false;
+		lastUpdateTicks = SDL_GetTicks();
+		gameClockSeconds = 0.0f;
+		elapsedSeconds = 0;
+		currentTimeLeft = LEVEL_TIME_SECONDS;
 		ResetButterflyFlight();
+		prevEnemyX = SCREEN_WIDTH + 120;
 	}
 }
 
@@ -268,7 +300,11 @@ void Game::handleEvents()
 			isRunning = false;
 			break;
 		case SDL_KEYDOWN:
-			if (event.key.keysym.sym == SDLK_SPACE && player)
+			if (event.key.repeat == 0 && event.key.keysym.sym == SDLK_RETURN)
+			{
+				isPaused = !isPaused;
+			}
+			if (!isPaused && event.key.keysym.sym == SDLK_SPACE && player)
 			{
 				player->Jump();
 			}
@@ -281,16 +317,49 @@ void Game::handleEvents()
 
 void Game::update()
 {
-	/*cnt++;
-	destR.h = 128;
-	destR.w = 128;
-	destR.x = cnt;
-
-	std::cout << cnt << std::endl;*/
 	int playerVelX = 0;
 	int playerVelY = 0;
-	const Uint8* keyState = SDL_GetKeyboardState(NULL);
+	Uint32 nowTicks = SDL_GetTicks();
+	if (lastUpdateTicks == 0)
+	{
+		lastUpdateTicks = nowTicks;
+	}
 
+	float dt = (float)(nowTicks - lastUpdateTicks) / 1000.0f;
+	if (dt > 0.05f)
+	{
+		dt = 0.05f;
+	}
+	lastUpdateTicks = nowTicks;
+
+	if (isPaused)
+	{
+		return;
+	}
+
+	if (freezeFrames > 0)
+	{
+		freezeFrames--;
+		return;
+	}
+
+	gameClockSeconds += dt;
+	elapsedSeconds = (int)gameClockSeconds;
+	currentTimeLeft = LEVEL_TIME_SECONDS - elapsedSeconds;
+	if (currentTimeLeft < 0)
+	{
+		currentTimeLeft = 0;
+	}
+
+	float progress = 1.0f - ((float)currentTimeLeft / (float)LEVEL_TIME_SECONDS);
+	enemySpeed = 2 + (int)std::floor(progress * 2.5f);
+	if (enemySpeed > 5)
+	{
+		enemySpeed = 5;
+	}
+	butterflySpeed = 3.0f + 3.0f * progress;
+
+	const Uint8* keyState = SDL_GetKeyboardState(NULL);
 	if (keyState[SDL_SCANCODE_LEFT])
 	{
 		playerVelX = -1;
@@ -309,10 +378,8 @@ void Game::update()
 		playerVelY = 1;
 	}
 
-	// move distant layers opposite to player movement for a simple parallax effect
 	cloudParallaxX -= playerVelX * 0.35f;
 	treeParallaxX -= playerVelX * 0.75f;
-
 	if (cloudParallaxX <= -SCREEN_WIDTH) cloudParallaxX += SCREEN_WIDTH;
 	if (cloudParallaxX >= SCREEN_WIDTH) cloudParallaxX -= SCREEN_WIDTH;
 	if (treeParallaxX <= -SCREEN_WIDTH) treeParallaxX += SCREEN_WIDTH;
@@ -327,62 +394,87 @@ void Game::update()
 
 	if (enemy)
 	{
-		enemy->SetVelocity(-2, 0);
+		prevEnemyX = enemy->GetBounds().x;
+		enemy->SetVelocity(-enemySpeed, 0);
 		enemy->Update();
-
 		SDL_Rect enemyRect = enemy->GetBounds();
 		if (enemyRect.x + enemyRect.w < 0)
 		{
 			enemy->SetPosition(SCREEN_WIDTH + 120, SCREEN_HEIGHT - GROUND_HEIGHT - SPRITE_SIZE);
 			enemyFlickerFrames = 0;
+			nearMissAwarded = false;
 		}
 	}
 
 	if (player && enemy && enemyFlickerFrames == 0)
 	{
 		SDL_Rect playerRect = player->GetHitbox();
-		SDL_Rect enemyRect  = enemy->GetHitbox();
+		SDL_Rect enemyRect = enemy->GetHitbox();
 		if (SDL_HasIntersection(&playerRect, &enemyRect))
 		{
 			const bool descending = playerRect.y > prevPlayerRect.y;
 			const bool fromAbove = (prevPlayerRect.y + prevPlayerRect.h) <= (enemyRect.y + 8);
-
 			if (descending && fromAbove)
 			{
 				enemyFlickerFrames = 40;
-				scoreCounter += 100;
+				int stompBonus = (currentTimeLeft <= 30) ? 200 : 100;
+				scoreCounter += stompBonus;
 				player->StompBounce();
+				freezeFrames = 3;
+				floatingScoreValue = stompBonus;
+				floatingScoreFrames = 40;
+				floatingScoreX = enemyRect.x + enemyRect.w / 2;
+				floatingScoreY = enemyRect.y - 20;
 			}
-			else if (playerFlickerFrames == 0)
+			else if (playerFlickerFrames == 0 && playerInvulnFrames == 0)
 			{
 				playerFlickerFrames = 60;
+				playerInvulnFrames = 60;
+				scoreCounter = std::max(0, scoreCounter - 100);
+				butterflyCapturedCount = std::max(0, butterflyCapturedCount - 1);
+				comboChain = 0;
+				shakeFrames = 14;
 			}
 		}
 	}
 
-	if (playerFlickerFrames > 0)
+	if (player && enemy && !nearMissAwarded)
 	{
-		playerFlickerFrames--;
+		SDL_Rect playerRect = player->GetHitbox();
+		SDL_Rect enemyRect = enemy->GetHitbox();
+		bool crossed = (prevEnemyX >= playerRect.x + playerRect.w) && (enemyRect.x + enemyRect.w < playerRect.x);
+		bool playerAirborne = playerRect.y < (SCREEN_HEIGHT - GROUND_HEIGHT - SPRITE_SIZE - 4);
+		int verticalGap = std::abs((playerRect.y + playerRect.h) - enemyRect.y);
+		if (crossed && playerAirborne && verticalGap < 80)
+		{
+			scoreCounter += 50;
+			nearMissAwarded = true;
+			floatingScoreValue = 50;
+			floatingScoreFrames = 30;
+			floatingScoreX = playerRect.x + playerRect.w / 2;
+			floatingScoreY = playerRect.y - 14;
+		}
 	}
 
-	if (enemyFlickerFrames > 0)
-	{
-		enemyFlickerFrames--;
-	}
+	if (playerFlickerFrames > 0) playerFlickerFrames--;
+	if (enemyFlickerFrames > 0) enemyFlickerFrames--;
+	if (playerInvulnFrames > 0) playerInvulnFrames--;
 
 	if (butterflyActive)
 	{
-		butterflyX -= 3.0f;
-		butterflyPhase += 0.028f;
-		butterflyY = 160.0f + TriangleWave(butterflyPhase) * 72.0f;
-
+		int minuteStage = elapsedSeconds / 60;
+		float centerY = (minuteStage % 2 == 0) ? 160.0f : 210.0f;
+		float amplitudeY = (minuteStage % 2 == 0) ? 72.0f : 92.0f;
+		float phaseSpeed = (minuteStage % 2 == 0) ? 0.028f : 0.038f;
+		butterflyX -= butterflySpeed;
+		butterflyPhase += phaseSpeed;
+		butterflyY = centerY + TriangleWave(butterflyPhase) * amplitudeY;
 		butterflyFrameTick++;
 		if (butterflyFrameTick >= 5)
 		{
 			butterflyFrameTick = 0;
 			butterflyFrame = (butterflyFrame + 1) % BUTTERFLY_FRAMES;
 		}
-
 		if (butterflyX < -BUTTERFLY_SIZE)
 		{
 			ResetButterflyFlight();
@@ -404,72 +496,97 @@ void Game::update()
 	{
 		SDL_Rect playerRect = player->GetHitbox();
 		SDL_Rect butterflyRect = { (int)butterflyX + 24, (int)butterflyY + 22, 102, 98 };
-		const bool playerAirborne = playerRect.y < (SCREEN_HEIGHT - GROUND_HEIGHT - SPRITE_SIZE - 4);
+		bool playerAirborne = playerRect.y < (SCREEN_HEIGHT - GROUND_HEIGHT - SPRITE_SIZE - 4);
 		if (playerAirborne && SDL_HasIntersection(&playerRect, &butterflyRect))
 		{
 			butterflyActive = false;
-			butterflyRespawnFrames = 150;
+			butterflyRespawnFrames = CalcButterflyRespawnFrames(elapsedSeconds);
 			butterflyFxFrames = 24;
 			butterflyFxX = butterflyRect.x + butterflyRect.w / 2;
 			butterflyFxY = butterflyRect.y + butterflyRect.h / 2;
 			butterflyCapturedCount++;
-			scoreCounter += 200;
+			comboChain++;
+			if (comboChain > 5) comboChain = 5;
+			int capturePoints = 200 * comboChain;
+			scoreCounter += capturePoints;
+			floatingScoreValue = capturePoints;
+			floatingScoreFrames = 40;
+			floatingScoreX = butterflyRect.x + butterflyRect.w / 2;
+			floatingScoreY = butterflyRect.y - 12;
+			freezeFrames = 2;
 		}
 	}
 
-	if (butterflyFxFrames > 0)
+	if (butterflyFxFrames > 0) butterflyFxFrames--;
+	if (floatingScoreFrames > 0)
 	{
-		butterflyFxFrames--;
+		floatingScoreFrames--;
+		if ((floatingScoreFrames % 3) == 0) floatingScoreY--;
 	}
 }
 
 void Game::render()
 {
-	// sky
-	SDL_SetRenderDrawColor(renderer, 107, 185, 240, 255);
+	int shakeX = 0;
+	int shakeY = 0;
+	if (shakeFrames > 0)
+	{
+		shakeFrames--;
+		shakeX = ((SDL_GetTicks() / 17) % 3) - 1;
+		shakeY = ((SDL_GetTicks() / 23) % 3) - 1;
+	}
+
+	if (currentTimeLeft <= 30)
+	{
+		Uint32 pulse = (SDL_GetTicks() / 120) % 3;
+		if (pulse == 0) SDL_SetRenderDrawColor(renderer, 120, 12, 12, 255);
+		else if (pulse == 1) SDL_SetRenderDrawColor(renderer, 80, 8, 8, 255);
+		else SDL_SetRenderDrawColor(renderer, 18, 6, 6, 255);
+	}
+	else
+	{
+		SDL_SetRenderDrawColor(renderer, 107, 185, 240, 255);
+	}
 	SDL_RenderClear(renderer);
 
 	int cx = (int)cloudParallaxX;
-	DrawCloud(renderer, 90 + cx, 86, 6);
-	DrawCloud(renderer, 350 + cx, 118, 5);
-	DrawCloud(renderer, 690 + cx, 74, 6);
-	DrawCloud(renderer, 90 + cx + SCREEN_WIDTH, 86, 6);
-	DrawCloud(renderer, 350 + cx + SCREEN_WIDTH, 118, 5);
-	DrawCloud(renderer, 690 + cx + SCREEN_WIDTH, 74, 6);
-	DrawCloud(renderer, 90 + cx - SCREEN_WIDTH, 86, 6);
-	DrawCloud(renderer, 350 + cx - SCREEN_WIDTH, 118, 5);
-	DrawCloud(renderer, 690 + cx - SCREEN_WIDTH, 74, 6);
+	DrawCloud(renderer, 90 + cx + shakeX, 86 + shakeY, 6);
+	DrawCloud(renderer, 350 + cx + shakeX, 118 + shakeY, 5);
+	DrawCloud(renderer, 690 + cx + shakeX, 74 + shakeY, 6);
+	DrawCloud(renderer, 90 + cx + SCREEN_WIDTH + shakeX, 86 + shakeY, 6);
+	DrawCloud(renderer, 350 + cx + SCREEN_WIDTH + shakeX, 118 + shakeY, 5);
+	DrawCloud(renderer, 690 + cx + SCREEN_WIDTH + shakeX, 74 + shakeY, 6);
+	DrawCloud(renderer, 90 + cx - SCREEN_WIDTH + shakeX, 86 + shakeY, 6);
+	DrawCloud(renderer, 350 + cx - SCREEN_WIDTH + shakeX, 118 + shakeY, 5);
+	DrawCloud(renderer, 690 + cx - SCREEN_WIDTH + shakeX, 74 + shakeY, 6);
 
 	const int groundTopY = SCREEN_HEIGHT - GROUND_HEIGHT;
 	int tx = (int)treeParallaxX;
-	DrawTree(renderer, 130 + tx, groundTopY, 8);
-	DrawTree(renderer, 420 + tx, groundTopY, 7);
-	DrawTree(renderer, 790 + tx, groundTopY, 9);
-	DrawTree(renderer, 130 + tx + SCREEN_WIDTH, groundTopY, 8);
-	DrawTree(renderer, 420 + tx + SCREEN_WIDTH, groundTopY, 7);
-	DrawTree(renderer, 790 + tx + SCREEN_WIDTH, groundTopY, 9);
-	DrawTree(renderer, 130 + tx - SCREEN_WIDTH, groundTopY, 8);
-	DrawTree(renderer, 420 + tx - SCREEN_WIDTH, groundTopY, 7);
-	DrawTree(renderer, 790 + tx - SCREEN_WIDTH, groundTopY, 9);
+	DrawTree(renderer, 130 + tx + shakeX, groundTopY + shakeY, 8);
+	DrawTree(renderer, 420 + tx + shakeX, groundTopY + shakeY, 7);
+	DrawTree(renderer, 790 + tx + shakeX, groundTopY + shakeY, 9);
+	DrawTree(renderer, 130 + tx + SCREEN_WIDTH + shakeX, groundTopY + shakeY, 8);
+	DrawTree(renderer, 420 + tx + SCREEN_WIDTH + shakeX, groundTopY + shakeY, 7);
+	DrawTree(renderer, 790 + tx + SCREEN_WIDTH + shakeX, groundTopY + shakeY, 9);
+	DrawTree(renderer, 130 + tx - SCREEN_WIDTH + shakeX, groundTopY + shakeY, 8);
+	DrawTree(renderer, 420 + tx - SCREEN_WIDTH + shakeX, groundTopY + shakeY, 7);
+	DrawTree(renderer, 790 + tx - SCREEN_WIDTH + shakeX, groundTopY + shakeY, 9);
 
 	if (butterflyActive && butterflyTex)
 	{
 		SDL_Rect src = { butterflyFrame * BUTTERFLY_SIZE, 0, BUTTERFLY_SIZE, BUTTERFLY_SIZE };
-		SDL_Rect dst = { (int)butterflyX, (int)butterflyY, BUTTERFLY_SIZE, BUTTERFLY_SIZE };
+		SDL_Rect dst = { (int)butterflyX + shakeX, (int)butterflyY + shakeY, BUTTERFLY_SIZE, BUTTERFLY_SIZE };
 		SDL_RenderCopy(renderer, butterflyTex, &src, &dst);
 	}
 
 	if (butterflyFxFrames > 0)
 	{
-		DrawButterflyFx(renderer, butterflyFxX, butterflyFxY, butterflyFxFrames);
+		DrawButterflyFx(renderer, butterflyFxX + shakeX, butterflyFxY + shakeY, butterflyFxFrames);
 	}
 
-	// ground strip (bottom 120px)
 	SDL_Rect ground = { 0, SCREEN_HEIGHT - GROUND_HEIGHT, SCREEN_WIDTH, GROUND_HEIGHT };
 	SDL_SetRenderDrawColor(renderer, 34, 139, 34, 255);
 	SDL_RenderFillRect(renderer, &ground);
-
-	// darker dirt edge at top of ground
 	SDL_Rect dirt = { 0, SCREEN_HEIGHT - GROUND_HEIGHT, SCREEN_WIDTH, 12 };
 	SDL_SetRenderDrawColor(renderer, 101, 67, 33, 255);
 	SDL_RenderFillRect(renderer, &dirt);
@@ -481,32 +598,17 @@ void Game::render()
 	char scoreText[32];
 	char timeText[32];
 	char butterflyText[32];
-	int elapsedSeconds = 0;
-	int timeLeft = LEVEL_TIME_SECONDS;
-	int timeMinutes = 0;
-	int timeSeconds = 0;
-	if (gameStartTicks > 0)
-	{
-		elapsedSeconds = (int)((SDL_GetTicks() - gameStartTicks) / 1000);
-		timeLeft = LEVEL_TIME_SECONDS - elapsedSeconds;
-		if (timeLeft < 0)
-		{
-			timeLeft = 0;
-		}
-	}
-	timeMinutes = timeLeft / 60;
-	timeSeconds = timeLeft % 60;
-
+	int timeLeft = currentTimeLeft;
+	int timeMinutes = timeLeft / 60;
+	int timeSeconds = timeLeft % 60;
 	std::snprintf(scoreText, sizeof(scoreText), "SCORE %06d", scoreCounter);
 	std::snprintf(timeText, sizeof(timeText), "TIME %02d:%02d", timeMinutes, timeSeconds);
 	std::snprintf(butterflyText, sizeof(butterflyText), "X %03d", butterflyCapturedCount);
 
-	// NES-like text shadow pass
 	SDL_SetRenderDrawColor(renderer, 58, 94, 161, 255);
 	DrawText(renderer, 26, 18, 4, scoreText);
 	DrawText(renderer, SCREEN_WIDTH - 24 - (int)std::strlen(timeText) * 24 + 2, 18, 4, timeText);
 
-	// Main HUD text pass with low-time flashing on timer
 	SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 	DrawText(renderer, 24, 16, 4, scoreText);
 	if (timeLeft <= 30 && ((SDL_GetTicks() / 200) % 2 == 0))
@@ -521,12 +623,21 @@ void Game::render()
 
 	SDL_SetRenderDrawColor(renderer, 58, 94, 161, 255);
 	DrawButterflyIcon(renderer, SCREEN_WIDTH / 2 - 52 + 2, 18, 4);
-	DrawText(renderer, SCREEN_WIDTH / 2 - 6 + 2, 16 + 2, 4, butterflyText);
+	DrawText(renderer, SCREEN_WIDTH / 2 - 6 + 2, 18, 4, butterflyText);
 	SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
 	DrawButterflyIcon(renderer, SCREEN_WIDTH / 2 - 52, 18, 4);
 	DrawText(renderer, SCREEN_WIDTH / 2 - 6, 16, 4, butterflyText);
 
-	//SDL_RenderCopy(renderer, playerTex, NULL, &destR);
+	if (floatingScoreFrames > 0)
+	{
+		char floatText[24];
+		std::snprintf(floatText, sizeof(floatText), "%d", floatingScoreValue);
+		SDL_SetRenderDrawColor(renderer, 58, 94, 161, 255);
+		DrawText(renderer, floatingScoreX + 1, floatingScoreY + 1, 3, floatText);
+		SDL_SetRenderDrawColor(renderer, 255, 252, 112, 255);
+		DrawText(renderer, floatingScoreX, floatingScoreY, 3, floatText);
+	}
+
 	if (player)
 	{
 		if (playerFlickerFrames == 0 || ((playerFlickerFrames / 4) % 2 == 0))
@@ -541,6 +652,20 @@ void Game::render()
 		{
 			enemy->Render();
 		}
+	}
+
+	if (isPaused)
+	{
+		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 160);
+		SDL_Rect pauseShade = { 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT };
+		SDL_RenderFillRect(renderer, &pauseShade);
+		SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+		SDL_Rect bar1 = { SCREEN_WIDTH / 2 - 20, SCREEN_HEIGHT / 2 - 34, 14, 68 };
+		SDL_Rect bar2 = { SCREEN_WIDTH / 2 + 6, SCREEN_HEIGHT / 2 - 34, 14, 68 };
+		SDL_RenderFillRect(renderer, &bar1);
+		SDL_RenderFillRect(renderer, &bar2);
+		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
 	}
 
 	SDL_RenderPresent(renderer);
