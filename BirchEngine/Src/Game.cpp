@@ -63,6 +63,7 @@ int levelNumber = 1;
 bool levelCleared = false;
 int levelClearFrames = 0;
 int levelRestartFrames = 0;
+bool gameCompleted = false;
 int stompImpactFrames = 0;
 int butterflyWinFrames = 0;
 bool gameOver = false;
@@ -148,6 +149,7 @@ static const int LEVEL_TIME_SECONDS = 300;
 static const int BUTTERFLY_SIZE = 150;
 static const int BUTTERFLY_FRAMES = 6;
 static const int TARGET_BUTTERFLIES_BASE = 10;
+static const int MAX_LEVELS = 4;
 
 static float TriangleWave(float t)
 {
@@ -368,6 +370,7 @@ static void ResetLevelState(bool incrementLevel)
 	levelCleared = false;
 	levelClearFrames = 0;
 	levelRestartFrames = 0;
+	gameCompleted = false;
 	gameOver = false;
 	levelTransitionActive = false;
 	currentTimeLeft = LEVEL_TIME_SECONDS;
@@ -593,6 +596,7 @@ static void DrawGlyph(SDL_Renderer* renderer, int x, int y, int scale, char ch)
 	static const char* GE[7] = { "11111", "10000", "10000", "11110", "10000", "10000", "11111" };
 	static const char* GL[7] = { "10000", "10000", "10000", "10000", "10000", "10000", "11111" };
 	static const char* GI[7] = { "11111", "00100", "00100", "00100", "00100", "00100", "11111" };
+	static const char* GK[7] = { "10001", "10010", "10100", "11000", "10100", "10010", "10001" };
 	static const char* GN[7] = { "10001", "11001", "10101", "10011", "10001", "10001", "10001" };
 	static const char* GM[7] = { "10001", "11011", "10101", "10101", "10001", "10001", "10001" };
 	static const char* GO[7] = { "01110", "10001", "10001", "10001", "10001", "10001", "01110" };
@@ -628,6 +632,7 @@ static void DrawGlyph(SDL_Renderer* renderer, int x, int y, int scale, char ch)
 	case 'E': g = GE; break;
 	case 'L': g = GL; break;
 	case 'I': g = GI; break;
+	case 'K': g = GK; break;
 	case 'N': g = GN; break;
 	case 'M': g = GM; break;
 	case 'O': g = GO; break;
@@ -782,6 +787,7 @@ void Game::init(const char* title, int width, int height, bool fullscreen)
 		isPaused = false;
 		levelNumber = 1;
 		butterflyGoal = TARGET_BUTTERFLIES_BASE;
+		gameCompleted = false;
 		if (audioDevice == 0)
 		{
 			SDL_AudioSpec want{};
@@ -827,7 +833,7 @@ void Game::handleEvents()
 				{
 					input.restartPressed = true;
 				}
-				else if (!levelCleared)
+				else if (!levelCleared && !gameCompleted)
 				{
 					input.pausePressed = true;
 				}
@@ -951,12 +957,17 @@ void Game::update()
 		ResetLevelState(false);
 	}
 
-	if (input.pausePressed && !gameOver && !levelCleared)
+	if (input.restartPressed && gameCompleted)
+	{
+		ResetLevelState(false);
+	}
+
+	if (input.pausePressed && !gameOver && !levelCleared && !gameCompleted)
 	{
 		isPaused = !isPaused;
 	}
 
-	if (input.jumpPressed && !isPaused && !levelCleared && !gameOver && player)
+	if (input.jumpPressed && !isPaused && !levelCleared && !gameCompleted && !gameOver && player)
 	{
 		player->Jump();
 	}
@@ -984,6 +995,11 @@ void Game::update()
 		{
 			ResetLevelState(true);
 		}
+		return;
+	}
+
+	if (gameCompleted)
+	{
 		return;
 	}
 
@@ -1215,15 +1231,30 @@ void Game::update()
 			freezeFrames = 2;
 			if (butterflyCapturedCount >= butterflyGoal)
 			{
-				levelCleared = true;
-				levelClearFrames = 180;
-				levelRestartFrames = 0;
-				butterflyWinFrames = 60;
-				musicTrackMode = 1;
-				musicPatternIndex = 0;
-				musicSamplesLeft = 0;
-				musicPhase = 0.0;
-				PlayWinSfx();
+				if (levelNumber >= MAX_LEVELS)
+				{
+					gameCompleted = true;
+					levelCleared = false;
+					levelClearFrames = 0;
+					levelRestartFrames = 0;
+					musicTrackMode = 1;
+					musicPatternIndex = 0;
+					musicSamplesLeft = 0;
+					musicPhase = 0.0;
+					PlayWinSfx();
+				}
+				else
+				{
+					levelCleared = true;
+					levelClearFrames = 180;
+					levelRestartFrames = 0;
+					butterflyWinFrames = 60;
+					musicTrackMode = 1;
+					musicPatternIndex = 0;
+					musicSamplesLeft = 0;
+					musicPhase = 0.0;
+					PlayWinSfx();
+				}
 			}
 		}
 	}
@@ -1235,6 +1266,24 @@ void Game::update()
 	{
 		floatingScoreFrames--;
 		if ((floatingScoreFrames % 3) == 0) floatingScoreY--;
+	}
+
+	if (gameCompleted)
+	{
+		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+		SDL_SetRenderDrawColor(renderer, 0, 0, 0, 190);
+		SDL_Rect completeShade = { 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT };
+		SDL_RenderFillRect(renderer, &completeShade);
+
+		SDL_SetRenderDrawColor(renderer, 255, 220, 96, 255);
+		DrawText(renderer, SCREEN_WIDTH / 2 - 198, SCREEN_HEIGHT / 2 - 52, 4, "ALL STAGES CLEAR");
+		SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+		DrawText(renderer, SCREEN_WIDTH / 2 - 192, SCREEN_HEIGHT / 2 + 6, 3, "YOU COMPLETED PRINCESSOWLIVIACB");
+		DrawText(renderer, SCREEN_WIDTH / 2 - 162, SCREEN_HEIGHT / 2 + 52, 3, "PRESS ENTER TO RESTART");
+
+		SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
+		SDL_RenderPresent(renderer);
+		return;
 	}
 }
 
@@ -1258,7 +1307,13 @@ void Game::render()
 		}
 
 		SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-		DrawText(renderer, SCREEN_WIDTH / 2 - 174, SCREEN_HEIGHT - 96, 4, "PRESS ANY KEY TO START");
+		const char* splashPrompt = "PRESS ANY KEY TO START";
+		const int splashScale = 2;
+		const int splashPromptWidth = (int)std::strlen(splashPrompt) * 6 * splashScale;
+		const int splashPromptHeight = 7 * splashScale;
+		const int splashPromptX = (SCREEN_WIDTH - splashPromptWidth) / 2;
+		const int splashPromptY = (SCREEN_HEIGHT - splashPromptHeight) / 2;
+		DrawText(renderer, splashPromptX, splashPromptY, splashScale, splashPrompt);
 		SDL_RenderPresent(renderer);
 		return;
 	}

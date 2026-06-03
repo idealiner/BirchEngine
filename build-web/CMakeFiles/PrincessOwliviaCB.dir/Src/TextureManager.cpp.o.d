@@ -1,6 +1,6 @@
-CMakeFiles/birchengine.dir/Src/GameObject.cpp.o: \
-  /home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/GameObject.cpp \
-  /home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/GameObject.h \
+CMakeFiles/PrincessOwliviaCB.dir/Src/TextureManager.cpp.o: \
+  /home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/TextureManager.cpp \
+  /home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/TextureManager.h \
   /home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/Game.h \
   /home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/emsdk/upstream/emscripten/cache/sysroot/include/SDL2/SDL.h \
   /home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/emsdk/upstream/emscripten/cache/sysroot/include/SDL2/SDL_main.h \
@@ -722,5 +722,4 @@ CMakeFiles/birchengine.dir/Src/GameObject.cpp.o: \
   /home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/emsdk/upstream/emscripten/cache/sysroot/include/c++/v1/stack \
   /home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/emsdk/upstream/emscripten/cache/sysroot/include/c++/v1/__fwd/stack.h \
   /home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/emsdk/upstream/emscripten/cache/sysroot/include/c++/v1/print \
-  /home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/emsdk/upstream/emscripten/cache/sysroot/include/unistd.h \
-  /home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/BirchEngine/Src/TextureManager.h
+  /home/uncannyvalleypictures/myprogrammes/birchengine/BirchEngine/emsdk/upstream/emscripten/cache/sysroot/include/unistd.h

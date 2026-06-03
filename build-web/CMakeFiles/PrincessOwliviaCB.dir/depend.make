@@ -1,2 +1,2 @@
-# Empty dependencies file for birchengine.
+# Empty dependencies file for PrincessOwliviaCB.
 # This may be replaced when dependencies are built.

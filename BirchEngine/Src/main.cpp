@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
 	(void)argv;
 
 	game = new Game();
-	game->init("GameWindow", 1024, 768, false);
+	game->init("PrincessOwliviaCB", 1024, 768, false);
 
 #ifdef __EMSCRIPTEN__
 	if (!game->running())
