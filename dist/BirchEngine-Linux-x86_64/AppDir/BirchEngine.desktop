@@ -1,7 +1,0 @@
-#!/usr/bin/env xdg-open
-[Desktop Entry]
-Type=Application
-Name=BirchEngine
-Exec=BirchEngine
-Icon=BirchEngine
-Categories=Game;
