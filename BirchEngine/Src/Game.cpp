@@ -304,15 +304,25 @@ static void SpawnButterfly(ButterflyState& butterflyState, int minuteStage, floa
 static void DrawButterflyIcon(SDL_Renderer* renderer, int x, int y, int p)
 {
 	SDL_Rect r;
-	SDL_SetRenderDrawColor(renderer, 255, 196, 64, 255);
+	SDL_SetRenderDrawColor(renderer, 170, 88, 218, 255);
 	r = { x + (0 * p), y + (1 * p), 2 * p, 2 * p }; SDL_RenderFillRect(renderer, &r);
 	r = { x + (4 * p), y + (1 * p), 2 * p, 2 * p }; SDL_RenderFillRect(renderer, &r);
 	r = { x + (1 * p), y + (0 * p), 1 * p, 1 * p }; SDL_RenderFillRect(renderer, &r);
 	r = { x + (4 * p), y + (0 * p), 1 * p, 1 * p }; SDL_RenderFillRect(renderer, &r);
+	r = { x + (0 * p), y + (3 * p), 2 * p, 2 * p }; SDL_RenderFillRect(renderer, &r);
+	r = { x + (4 * p), y + (3 * p), 2 * p, 2 * p }; SDL_RenderFillRect(renderer, &r);
+	r = { x + (1 * p), y + (5 * p), 1 * p, 1 * p }; SDL_RenderFillRect(renderer, &r);
+	r = { x + (4 * p), y + (5 * p), 1 * p, 1 * p }; SDL_RenderFillRect(renderer, &r);
 
-	SDL_SetRenderDrawColor(renderer, 250, 120, 64, 255);
+	SDL_SetRenderDrawColor(renderer, 255, 132, 214, 255);
+	r = { x + (1 * p), y + (2 * p), 1 * p, 2 * p }; SDL_RenderFillRect(renderer, &r);
+	r = { x + (4 * p), y + (2 * p), 1 * p, 2 * p }; SDL_RenderFillRect(renderer, &r);
+	r = { x + (1 * p), y + (4 * p), 1 * p, 1 * p }; SDL_RenderFillRect(renderer, &r);
+	r = { x + (4 * p), y + (4 * p), 1 * p, 1 * p }; SDL_RenderFillRect(renderer, &r);
+
+	SDL_SetRenderDrawColor(renderer, 118, 56, 160, 255);
 	r = { x + (2 * p), y + (1 * p), 2 * p, 2 * p }; SDL_RenderFillRect(renderer, &r);
-	r = { x + (2 * p), y + (3 * p), 1 * p, 2 * p }; SDL_RenderFillRect(renderer, &r);
+	r = { x + (2 * p), y + (3 * p), 2 * p, 2 * p }; SDL_RenderFillRect(renderer, &r);
 }
 
 static void DrawButterflyFx(SDL_Renderer* renderer, int cx, int cy, int frame)
@@ -1910,7 +1920,7 @@ void Game::render()
 	std::snprintf(timeText, sizeof(timeText), "TIME %02d:%02d", timeMinutes, timeSeconds);
 	std::snprintf(butterflyText, sizeof(butterflyText), "X %02d OF %02d", butterflyCapturedCount, butterflyGoal);
 
-	SDL_SetRenderDrawColor(renderer, 58, 94, 161, 255);
+	SDL_SetRenderDrawColor(renderer, 101, 67, 33, 255);
 	DrawText(renderer, 26, 18, 4, scoreText);
 	DrawText(renderer, SCREEN_WIDTH - 24 - (int)std::strlen(timeText) * 24 + 2, 18, 4, timeText);
 
@@ -1930,10 +1940,10 @@ void Game::render()
 	const int butterflyTextWidth = (int)std::strlen(butterflyText) * 24;
 	const int butterflyBlockWidth = butterflyIconWidth + 12 + butterflyTextWidth;
 	const int butterflyStartX = SCREEN_WIDTH / 2 - butterflyBlockWidth / 2;
-	SDL_SetRenderDrawColor(renderer, 58, 94, 161, 255);
+	SDL_SetRenderDrawColor(renderer, 82, 36, 112, 255);
 	DrawButterflyIcon(renderer, butterflyStartX + 2, 18, 4);
 	DrawText(renderer, butterflyStartX + butterflyIconWidth + 14 + 2, 18, 4, butterflyText);
-	SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+	SDL_SetRenderDrawColor(renderer, 240, 214, 255, 255);
 	DrawButterflyIcon(renderer, butterflyStartX, 16, 4);
 	DrawText(renderer, butterflyStartX + butterflyIconWidth + 14, 16, 4, butterflyText);
 
@@ -1941,7 +1951,7 @@ void Game::render()
 	{
 		char floatText[24];
 		std::snprintf(floatText, sizeof(floatText), "%d", floatingScoreValue);
-		SDL_SetRenderDrawColor(renderer, 58, 94, 161, 255);
+		SDL_SetRenderDrawColor(renderer, 101, 67, 33, 255);
 		DrawText(renderer, floatingScoreX + 1, floatingScoreY + 1, 3, floatText);
 		SDL_SetRenderDrawColor(renderer, 255, 252, 112, 255);
 		DrawText(renderer, floatingScoreX, floatingScoreY, 3, floatText);
