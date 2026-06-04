@@ -40,6 +40,29 @@
       overflow: hidden;
     }
 
+    #gameFrame:fullscreen,
+    #gameFrame:-webkit-full-screen,
+    #gameFrame:-moz-full-screen,
+    #gameFrame:-ms-fullscreen {
+      width: 100vw;
+      height: 100vh;
+      max-width: none;
+      border-radius: 0;
+      border: 0;
+      display: flex;
+      flex-direction: column;
+    }
+
+    #gameFrame:fullscreen #canvas,
+    #gameFrame:-webkit-full-screen #canvas,
+    #gameFrame:-moz-full-screen #canvas,
+    #gameFrame:-ms-fullscreen #canvas {
+      flex: 1 1 auto;
+      width: 100%;
+      height: auto;
+      min-height: 0;
+    }
+
     #canvas {
       display: block;
       width: 100%;
@@ -94,7 +117,7 @@
 </head>
 <body>
   <div class="layout">
-    <div class="frame">
+    <div class="frame" id="gameFrame">
       <canvas id="canvas" oncontextmenu="event.preventDefault()" tabindex="-1"></canvas>
       <div class="hud">
         <div id="status">Loading PrincessOwliviaCB...</div>
@@ -106,41 +129,142 @@
   <script>
     var statusElement = document.getElementById('status');
     var fullscreenButton = document.getElementById('fullscreenBtn');
+    var frameElement = document.getElementById('gameFrame');
+
+    function getFullscreenElement() {
+      return document.fullscreenElement ||
+        document.webkitFullscreenElement ||
+        document.mozFullScreenElement ||
+        document.msFullscreenElement ||
+        null;
+    }
+
+    function setStatusText(text) {
+      if (!statusElement) {
+        return;
+      }
+      statusElement.textContent = text || '';
+    }
+
+    function isOldSafariLikeBrowser() {
+      var ua = navigator.userAgent || '';
+      var isSafari = /Safari/i.test(ua) && !/Chrome|Chromium|CriOS|Android/i.test(ua);
+      var isAppleMobile = /iPhone|iPad|iPod/i.test(ua);
+      return isSafari || isAppleMobile;
+    }
+
+    function supportsElementFullscreen(target) {
+      if (!target) {
+        return false;
+      }
+
+      return !!(
+        target.requestFullscreen ||
+        target.webkitRequestFullscreen ||
+        target.webkitRequestFullScreen ||
+        target.mozRequestFullScreen ||
+        target.msRequestFullscreen
+      );
+    }
+
+    function getFullscreenFailureMessage() {
+      if (isOldSafariLikeBrowser() && !supportsElementFullscreen(frameElement || document.getElementById('canvas'))) {
+        return 'Fullscreen is limited on older Safari and some iPhone/iPad browsers.';
+      }
+
+      return 'Fullscreen blocked or unsupported. Click the game area, then try again.';
+    }
+
+    function focusCanvas() {
+      var canvas = document.getElementById('canvas');
+      if (canvas && typeof canvas.focus === 'function') {
+        canvas.focus();
+      }
+      return canvas;
+    }
+
+    function requestElementFullscreen(target) {
+      if (!target) {
+        return false;
+      }
+
+      var request = target.requestFullscreen ||
+        target.webkitRequestFullscreen ||
+        target.webkitRequestFullScreen ||
+        target.mozRequestFullScreen ||
+        target.msRequestFullscreen;
+
+      if (!request) {
+        return false;
+      }
+
+      request.call(target);
+      return true;
+    }
+
+    function exitAnyFullscreen() {
+      var exit = document.exitFullscreen ||
+        document.webkitExitFullscreen ||
+        document.webkitCancelFullScreen ||
+        document.mozCancelFullScreen ||
+        document.msExitFullscreen;
+
+      if (!exit) {
+        return false;
+      }
+
+      exit.call(document);
+      return true;
+    }
 
     function setFullscreenButtonLabel() {
       if (!fullscreenButton) return;
-      fullscreenButton.textContent = document.fullscreenElement ? 'Exit Fullscreen' : 'Fullscreen';
+      fullscreenButton.textContent = getFullscreenElement() ? 'Exit Fullscreen' : 'Fullscreen';
     }
 
-    async function toggleFullscreen() {
+    function toggleFullscreen() {
       try {
-        if (document.fullscreenElement) {
-          await document.exitFullscreen();
+        focusCanvas();
+
+        if (getFullscreenElement()) {
+          if (!exitAnyFullscreen()) {
+            throw new Error('Fullscreen exit is not supported by this browser.');
+          }
           setFullscreenButtonLabel();
+          return;
+        }
+
+        var target = frameElement || focusCanvas();
+        if (requestElementFullscreen(target)) {
+          window.setTimeout(setFullscreenButtonLabel, 0);
           return;
         }
 
         if (Module && typeof Module.requestFullscreen === 'function') {
           Module.requestFullscreen(false, true);
         } else {
-          var canvas = document.getElementById('canvas');
-          if (canvas && canvas.requestFullscreen) {
-            await canvas.requestFullscreen();
+          if (!requestElementFullscreen(target)) {
+            throw new Error('Fullscreen request is not supported by this browser.');
           }
         }
-        setFullscreenButtonLabel();
+
+        window.setTimeout(setFullscreenButtonLabel, 0);
       } catch (err) {
         console.error('Fullscreen failed', err);
-        if (statusElement) {
-          statusElement.textContent = 'Fullscreen blocked by browser. Click canvas then try again.';
-        }
+        setStatusText(getFullscreenFailureMessage());
       }
     }
 
     if (fullscreenButton) {
+      if (isOldSafariLikeBrowser() && !supportsElementFullscreen(frameElement || document.getElementById('canvas'))) {
+        fullscreenButton.title = 'Older Safari versions may not support fullscreen for canvas games.';
+      }
       fullscreenButton.addEventListener('click', toggleFullscreen);
     }
     document.addEventListener('fullscreenchange', setFullscreenButtonLabel);
+    document.addEventListener('webkitfullscreenchange', setFullscreenButtonLabel);
+    document.addEventListener('mozfullscreenchange', setFullscreenButtonLabel);
+    document.addEventListener('MSFullscreenChange', setFullscreenButtonLabel);
 
     var Module = {
       preRun: [],
@@ -159,8 +283,13 @@
         return canvas;
       })(),
       setStatus: function (text) {
-        if (!statusElement) return;
-        statusElement.textContent = text || '';
+        setStatusText(text);
+      },
+      onFullscreen: function () {
+        setFullscreenButtonLabel();
+      },
+      onFullScreen: function () {
+        setFullscreenButtonLabel();
       },
       print: function (text) {
         console.log(text);

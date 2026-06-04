@@ -17,9 +17,31 @@
 SDL_Rect srcR, destR;*/
 
 GameObject* player;
-GameObject* enemy;
+struct EnemyState
+{
+	GameObject* obj = nullptr;
+	bool active = false;
+	int respawnFrames = 0;
+	int flickerFrames = 0;
+	bool nearMissAwarded = false;
+	int prevX = 0;
+	int direction = -1;
+};
+std::vector<EnemyState> enemies;
+struct ButterflyState
+{
+	bool active = false;
+	float x = 0.0f;
+	float y = 0.0f;
+	float phase = 0.0f;
+	int frame = 0;
+	int frameTick = 0;
+	int respawnFrames = 0;
+	int direction = -1;
+	float speedScale = 1.0f;
+};
+std::vector<ButterflyState> butterflies;
 int playerFlickerFrames = 0;
-int enemyFlickerFrames = 0;
 SDL_Rect prevPlayerRect = { 0, 0, 0, 0 };
 int scoreCounter = 0;
 Uint32 gameStartTicks = 0;
@@ -30,13 +52,6 @@ float flowerParallaxX = 0.0f;
 
 SDL_Texture* butterflyTex = nullptr;
 SDL_Texture* splashTex = nullptr;
-bool butterflyActive = true;
-float butterflyX = 0.0f;
-float butterflyY = 0.0f;
-float butterflyPhase = 0.0f;
-int butterflyFrame = 0;
-int butterflyFrameTick = 0;
-int butterflyRespawnFrames = 0;
 int butterflyCapturedCount = 0;
 int butterflyFxFrames = 0;
 int butterflyFxX = 0;
@@ -51,16 +66,12 @@ int floatingScoreX = 0;
 int floatingScoreY = 0;
 int floatingScoreValue = 0;
 bool isPaused = false;
-bool nearMissAwarded = false;
-int prevEnemyX = 0;
 float butterflySpeed = 3.0f;
 int enemySpeed = 2;
 Uint32 lastUpdateTicks = 0;
 float gameClockSeconds = 0.0f;
 int elapsedSeconds = 0;
 int currentTimeLeft = 0;
-bool enemyActive = true;
-int enemyRespawnFrames = 0;
 int hitDangerFrames = 0;
 int butterflyGoal = 10;
 int levelNumber = 1;
@@ -170,6 +181,14 @@ static void LoadHighScore();
 static void SaveHighScore(const std::string& playerName, int score);
 static void BeginHighScoreEntry();
 static void FinishHighScoreEntry();
+static int ActiveEnemySlotsForLevel();
+static int ActiveButterflySlotsForLevel();
+static int CalcEnemySpeed(float progress);
+static int CalcEnemyRespawnFrames(float progress);
+static void SpawnEnemy(EnemyState& enemyState, float progress, bool immediate);
+static int CalcButterflyRespawnFrames(int elapsed, float progress);
+static float CalcButterflySpeed(float progress);
+static void SpawnButterfly(ButterflyState& butterflyState, int minuteStage, float progress, bool immediate, int staggerFrames);
 
 static float TriangleWave(float t)
 {
@@ -187,10 +206,83 @@ static float TriangleWave(float t)
 	return 3.0f - f * 4.0f;
 }
 
-static int CalcButterflyRespawnFrames(int elapsed)
+static int CalcButterflyRespawnFrames(int elapsed, float progress)
 {
 	int stage30 = elapsed / 30;
-	return std::max(60, 150 - stage30 * 8);
+	int levelBoost = (levelNumber - 1) * 8;
+	int paceBoost = (int)std::floor(progress * 26.0f);
+	return std::max(24, 140 - stage30 * 8 - levelBoost - paceBoost);
+}
+
+static int ActiveEnemySlotsForLevel()
+{
+	return std::clamp(levelNumber, 1, 4);
+}
+
+static int ActiveButterflySlotsForLevel()
+{
+	if (levelNumber <= 1) return 1;
+	if (levelNumber == 2) return 2;
+	return 3;
+}
+
+static int CalcEnemySpeed(float progress)
+{
+	int baseSpeed = 2 + (levelNumber - 1);
+	int scaledSpeed = baseSpeed + (int)std::floor(progress * (5.0f + (float)(levelNumber - 1)));
+	return std::clamp(scaledSpeed, 2, 14);
+}
+
+static int CalcEnemyRespawnFrames(float progress)
+{
+	int levelBoost = (levelNumber - 1) * 6;
+	int minFrames = std::max(6, 20 - levelBoost);
+	int maxFrames = std::max(minFrames + 8, 56 - levelBoost * 2);
+	int variableFrames = (int)std::floor(progress * 26.0f);
+	return std::max(minFrames, maxFrames - variableFrames);
+}
+
+static void SpawnEnemy(EnemyState& enemyState, float progress, bool immediate)
+{
+	if (!enemyState.obj)
+	{
+		return;
+	}
+
+	const int spawnOffset = std::max(36, 210 - (int)std::floor(progress * 160.0f));
+	enemyState.direction = (std::rand() % 2 == 0) ? -1 : 1;
+	const int spawnX = (enemyState.direction < 0) ? (SCREEN_WIDTH + spawnOffset) : (-SPRITE_SIZE - spawnOffset);
+	enemyState.obj->SetPosition(spawnX, SCREEN_HEIGHT - GROUND_HEIGHT - SPRITE_SIZE);
+	enemyState.active = true;
+	enemyState.flickerFrames = 0;
+	enemyState.nearMissAwarded = false;
+	enemyState.prevX = spawnX;
+	enemyState.respawnFrames = immediate ? 0 : CalcEnemyRespawnFrames(progress);
+}
+
+static float CalcButterflySpeed(float progress)
+{
+	float baseSpeed = 3.0f + 0.5f * (float)(levelNumber - 1);
+	float scaled = baseSpeed + (2.6f + 0.45f * (float)(levelNumber - 1)) * progress;
+	return std::min(9.0f, scaled);
+}
+
+static void SpawnButterfly(ButterflyState& butterflyState, int minuteStage, float progress, bool immediate, int staggerFrames)
+{
+	butterflyState.direction = (std::rand() % 2 == 0) ? -1 : 1;
+	int spawnOffset = std::max(60, 220 - (int)std::floor(progress * 150.0f));
+	butterflyState.x = (butterflyState.direction < 0)
+		? (float)(SCREEN_WIDTH + spawnOffset)
+		: (float)(-BUTTERFLY_SIZE - spawnOffset);
+	float centerY = (minuteStage % 2 == 0) ? 160.0f : 210.0f;
+	float amplitudeY = (minuteStage % 2 == 0) ? 72.0f : 92.0f;
+	butterflyState.phase += 0.23f + (float)((std::rand() % 7) + 1) * 0.09f;
+	butterflyState.y = centerY + TriangleWave(butterflyState.phase) * amplitudeY;
+	butterflyState.frame = std::rand() % BUTTERFLY_FRAMES;
+	butterflyState.frameTick = 0;
+	butterflyState.speedScale = 0.88f + (float)(std::rand() % 35) / 100.0f;
+	butterflyState.active = true;
+	butterflyState.respawnFrames = immediate ? 0 : (CalcButterflyRespawnFrames(elapsedSeconds, progress) + staggerFrames);
 }
 
 static void DrawButterflyIcon(SDL_Renderer* renderer, int x, int y, int p)
@@ -227,17 +319,6 @@ static void DrawButterflyFx(SDL_Renderer* renderer, int cx, int cy, int frame)
 	r = { cx + 14, cy - 24, 10, 10 }; SDL_RenderFillRect(renderer, &r);
 	r = { cx - 24, cy + 14, 10, 10 }; SDL_RenderFillRect(renderer, &r);
 	r = { cx + 14, cy + 14, 10, 10 }; SDL_RenderFillRect(renderer, &r);
-}
-
-static void ResetButterflyFlight()
-{
-	butterflyActive = true;
-	butterflyX = (float)(SCREEN_WIDTH + 120);
-	butterflyPhase += 0.31f;
-	butterflyY = 160.0f + TriangleWave(butterflyPhase) * 72.0f;
-	butterflyFrame = 0;
-	butterflyFrameTick = 0;
-	butterflyRespawnFrames = 0;
 }
 
 static void StartMusicNote()
@@ -360,6 +441,10 @@ static void ResetLevelState(bool incrementLevel)
 	{
 		levelNumber++;
 	}
+	else
+	{
+		scoreCounter = 0;
+	}
 
 	musicTrackMode = 0;
 	musicPatternIndex = 0;
@@ -375,7 +460,6 @@ static void ResetLevelState(bool incrementLevel)
 	butterflyCapturedCount = 0;
 	comboChain = 0;
 	playerFlickerFrames = 0;
-	enemyFlickerFrames = 0;
 	playerInvulnFrames = 0;
 	butterflyFxFrames = 0;
 	stompImpactFrames = 0;
@@ -386,7 +470,6 @@ static void ResetLevelState(bool incrementLevel)
 	freezeFrames = 0;
 	shakeFrames = 0;
 	hitDangerFrames = 0;
-	nearMissAwarded = false;
 	levelCleared = false;
 	levelClearFrames = 0;
 	levelRestartFrames = 0;
@@ -403,22 +486,67 @@ static void ResetLevelState(bool incrementLevel)
 	lastUpdateTicks = SDL_GetTicks();
 	cloudParallaxX = 0.0f;
 	treeParallaxX = 0.0f;
-	butterflyRespawnFrames = 0;
-	ResetButterflyFlight();
+	const int activeButterflies = ActiveButterflySlotsForLevel();
+	for (size_t i = 0; i < butterflies.size(); ++i)
+	{
+		ButterflyState& butterflyState = butterflies[i];
+		if ((int)i < activeButterflies)
+		{
+			if (i == 0)
+			{
+				SpawnButterfly(butterflyState, 0, 0.0f, true, 0);
+			}
+			else
+			{
+				butterflyState.active = false;
+				butterflyState.respawnFrames = 24 + (int)i * 20;
+			}
+		}
+		else
+		{
+			butterflyState.active = false;
+			butterflyState.respawnFrames = 0;
+		}
+	}
 	musicPatternIndex = 0;
 	musicSamplesLeft = 0;
 	musicPhase = 0.0;
-	if (enemy)
+	const int slotsActive = ActiveEnemySlotsForLevel();
+	for (size_t i = 0; i < enemies.size(); ++i)
 	{
-		enemyActive = true;
-		enemyRespawnFrames = 0;
-		enemy->SetPosition(SCREEN_WIDTH + 120, SCREEN_HEIGHT - GROUND_HEIGHT - SPRITE_SIZE);
+		EnemyState& enemyState = enemies[i];
+		if (!enemyState.obj)
+		{
+			continue;
+		}
+		enemyState.obj->SetVelocity(0, 0);
+		if ((int)i < slotsActive)
+		{
+			if (i == 0)
+			{
+				SpawnEnemy(enemyState, 0.0f, true);
+			}
+			else
+			{
+				enemyState.active = false;
+				enemyState.flickerFrames = 0;
+				enemyState.nearMissAwarded = false;
+				enemyState.respawnFrames = 10 + (int)i * 14;
+			}
+		}
+		else
+		{
+			enemyState.active = false;
+			enemyState.flickerFrames = 0;
+			enemyState.nearMissAwarded = false;
+			enemyState.respawnFrames = 0;
+			enemyState.obj->SetPosition(SCREEN_WIDTH + 260 + (int)i * 80, SCREEN_HEIGHT - GROUND_HEIGHT - SPRITE_SIZE);
+		}
 	}
 	if (player)
 	{
 		player->SetPosition(0, SCREEN_HEIGHT - GROUND_HEIGHT - SPRITE_SIZE);
 	}
-	prevEnemyX = SCREEN_WIDTH + 120;
 	if (audioDevice != 0)
 	{
 		SDL_LockAudioDevice(audioDevice);
@@ -638,6 +766,7 @@ static void DrawGlyph(SDL_Renderer* renderer, int x, int y, int scale, char ch)
 	static const char* GY[7] = { "10001", "01010", "00100", "00100", "00100", "00100", "00100" };
 	static const char* GZ[7] = { "11111", "00001", "00010", "00100", "01000", "10000", "11111" };
 	static const char* GColon[7] = { "00000", "00100", "00100", "00000", "00100", "00100", "00000" };
+	static const char* GUnder[7] = { "00000", "00000", "00000", "00000", "00000", "00000", "11111" };
 	static const char* GSpace[7] = { "00000", "00000", "00000", "00000", "00000", "00000", "00000" };
 	const char** g = GSpace;
 
@@ -680,6 +809,7 @@ static void DrawGlyph(SDL_Renderer* renderer, int x, int y, int scale, char ch)
 	case 'Y': g = GY; break;
 	case 'Z': g = GZ; break;
 	case ':': g = GColon; break;
+	case '_': g = GUnder; break;
 	default: break;
 	}
 
@@ -906,7 +1036,9 @@ void Game::init(const char* title, int width, int height, bool fullscreen)
 	window = nullptr;
 	renderer = nullptr;
 	player = nullptr;
-	enemy = nullptr;
+	enemies.clear();
+	butterflies.clear();
+	std::srand((unsigned int)SDL_GetTicks());
 
 	if (fullscreen)
 	{
@@ -985,8 +1117,23 @@ void Game::init(const char* title, int width, int height, bool fullscreen)
 		const int groundY = SCREEN_HEIGHT - GROUND_HEIGHT - SPRITE_SIZE;
 		player = new GameObject("assets/cha11.png", renderer, 0, groundY, 6);
 		player->SetGroundY(groundY);
-		enemy = new GameObject("assets/arche.png", renderer, SCREEN_WIDTH + 120, groundY, 6);
-		enemy->SetGroundY(groundY);
+		enemies.reserve(4);
+		for (int i = 0; i < 4; ++i)
+		{
+			EnemyState enemyState;
+			enemyState.obj = new GameObject("assets/arche.png", renderer, SCREEN_WIDTH + 240 + i * 80, groundY, 6);
+			enemyState.obj->SetGroundY(groundY);
+			enemyState.active = false;
+			enemies.push_back(enemyState);
+		}
+		butterflies.reserve(3);
+		for (int i = 0; i < 3; ++i)
+		{
+			ButterflyState butterflyState;
+			butterflyState.active = false;
+			butterflyState.respawnFrames = 0;
+			butterflies.push_back(butterflyState);
+		}
 		scoreCounter = 0;
 		isPaused = false;
 		levelNumber = 1;
@@ -1038,6 +1185,10 @@ void Game::handleEvents()
 				if (event.key.repeat == 0 && event.key.keysym.sym == SDLK_RETURN)
 				{
 					FinishHighScoreEntry();
+					if (gameOver || gameCompleted)
+					{
+						input.restartPressed = true;
+					}
 				}
 				else if (event.key.repeat == 0 && event.key.keysym.sym == SDLK_BACKSPACE && !nameEntryBuffer.empty())
 				{
@@ -1273,12 +1424,8 @@ void Game::update()
 	}
 
 	float progress = 1.0f - ((float)currentTimeLeft / (float)LEVEL_TIME_SECONDS);
-	enemySpeed = 2 + (int)std::floor(progress * 5.0f);
-	if (enemySpeed > 8)
-	{
-		enemySpeed = 8;
-	}
-	butterflySpeed = 3.0f + 3.0f * progress;
+	enemySpeed = CalcEnemySpeed(progress);
+	butterflySpeed = CalcButterflySpeed(progress);
 
 	if (input.left)
 	{
@@ -1327,175 +1474,248 @@ void Game::update()
 		}
 	}
 
-	if (enemy && enemyActive)
+	const int activeEnemySlots = ActiveEnemySlotsForLevel();
+	for (size_t i = 0; i < enemies.size(); ++i)
 	{
-		prevEnemyX = enemy->GetBounds().x;
-		enemy->SetVelocity(-enemySpeed, 0);
-		enemy->Update();
-		SDL_Rect enemyRect = enemy->GetBounds();
-		if (enemyRect.x + enemyRect.w < 0)
+		EnemyState& enemyState = enemies[i];
+		if (!enemyState.obj)
 		{
-			enemyActive = false;
-			enemyRespawnFrames = std::max(8, 45 - (int)std::floor(progress * 30.0f));
-			enemyFlickerFrames = 0;
-			nearMissAwarded = false;
+			continue;
 		}
-	}
-	else if (enemy && !enemyActive)
-	{
-		if (enemyRespawnFrames > 0)
+
+		if ((int)i >= activeEnemySlots)
 		{
-			enemyRespawnFrames--;
+			enemyState.active = false;
+			enemyState.obj->SetVelocity(0, 0);
+			continue;
+		}
+
+		if (enemyState.active)
+		{
+			enemyState.prevX = enemyState.obj->GetBounds().x;
+			enemyState.obj->SetVelocity(enemyState.direction * enemySpeed, 0);
+			enemyState.obj->Update();
+			SDL_Rect enemyRect = enemyState.obj->GetBounds();
+			bool enemyExited = (enemyState.direction < 0)
+				? (enemyRect.x + enemyRect.w < 0)
+				: (enemyRect.x > SCREEN_WIDTH);
+			if (enemyExited)
+			{
+				enemyState.active = false;
+				enemyState.respawnFrames = CalcEnemyRespawnFrames(progress);
+				enemyState.flickerFrames = 0;
+				enemyState.nearMissAwarded = false;
+			}
 		}
 		else
 		{
-			int spawnOffset = std::max(40, 220 - (int)std::floor(progress * 170.0f));
-			enemy->SetPosition(SCREEN_WIDTH + spawnOffset, SCREEN_HEIGHT - GROUND_HEIGHT - SPRITE_SIZE);
-			enemyActive = true;
-		}
-	}
-
-	if (player && enemy && enemyActive && enemyFlickerFrames == 0)
-	{
-		SDL_Rect playerRect = player->GetHitbox();
-		SDL_Rect enemyRect = enemy->GetHitbox();
-		if (SDL_HasIntersection(&playerRect, &enemyRect))
-		{
-			const bool descending = playerRect.y > prevPlayerRect.y;
-			const bool fromAbove = (prevPlayerRect.y + prevPlayerRect.h) <= (enemyRect.y + 8);
-			if (descending && fromAbove)
+			if (enemyState.respawnFrames > 0)
 			{
-				PlayStompSfx();
-				enemyFlickerFrames = 40;
-				stompImpactFrames = 16;
-				int stompBonus = (currentTimeLeft <= 30) ? 200 : 100;
-				scoreCounter += stompBonus;
-				player->StompBounce();
-				freezeFrames = 3;
-				floatingScoreValue = stompBonus;
-				floatingScoreFrames = 40;
-				floatingScoreX = enemyRect.x + enemyRect.w / 2;
-				floatingScoreY = enemyRect.y - 20;
+				enemyState.respawnFrames--;
 			}
-			else if (playerFlickerFrames == 0 && playerInvulnFrames == 0)
+			else
 			{
-				PlayEnemyHitSfx();
-				playerFlickerFrames = 60;
-				playerInvulnFrames = 60;
-				scoreCounter = std::max(0, scoreCounter - 100);
-				butterflyCapturedCount = std::max(0, butterflyCapturedCount - 1);
-				comboChain = 0;
-				shakeFrames = 14;
-				hitDangerFrames = 22;
+				SpawnEnemy(enemyState, progress, false);
 			}
 		}
 	}
 
-	if (player && enemy && enemyActive && !nearMissAwarded)
+	if (player)
 	{
 		SDL_Rect playerRect = player->GetHitbox();
-		SDL_Rect enemyRect = enemy->GetHitbox();
-		bool crossed = (prevEnemyX >= playerRect.x + playerRect.w) && (enemyRect.x + enemyRect.w < playerRect.x);
-		bool playerAirborne = playerRect.y < (SCREEN_HEIGHT - GROUND_HEIGHT - SPRITE_SIZE - 4);
-		int verticalGap = std::abs((playerRect.y + playerRect.h) - enemyRect.y);
-		if (crossed && playerAirborne && verticalGap < 80)
+		for (EnemyState& enemyState : enemies)
 		{
-			scoreCounter += 50;
-			nearMissAwarded = true;
-			floatingScoreValue = 50;
-			floatingScoreFrames = 30;
-			floatingScoreX = playerRect.x + playerRect.w / 2;
-			floatingScoreY = playerRect.y - 14;
+			if (!enemyState.obj || !enemyState.active || enemyState.flickerFrames > 0)
+			{
+				continue;
+			}
+
+			SDL_Rect enemyRect = enemyState.obj->GetHitbox();
+			if (SDL_HasIntersection(&playerRect, &enemyRect))
+			{
+				const bool descending = playerRect.y > prevPlayerRect.y;
+				const bool fromAbove = (prevPlayerRect.y + prevPlayerRect.h) <= (enemyRect.y + 8);
+				if (descending && fromAbove)
+				{
+					PlayStompSfx();
+					enemyState.flickerFrames = 40;
+					stompImpactFrames = 16;
+					int stompBonus = (currentTimeLeft <= 30) ? 200 : 100;
+					scoreCounter += stompBonus;
+					player->StompBounce();
+					freezeFrames = 3;
+					floatingScoreValue = stompBonus;
+					floatingScoreFrames = 40;
+					floatingScoreX = enemyRect.x + enemyRect.w / 2;
+					floatingScoreY = enemyRect.y - 20;
+				}
+				else if (playerFlickerFrames == 0 && playerInvulnFrames == 0)
+				{
+					PlayEnemyHitSfx();
+					playerFlickerFrames = 60;
+					playerInvulnFrames = 60;
+					scoreCounter = std::max(0, scoreCounter - 100);
+					butterflyCapturedCount = std::max(0, butterflyCapturedCount - 1);
+					comboChain = 0;
+					shakeFrames = 14;
+					hitDangerFrames = 22;
+					break;
+				}
+			}
+		}
+
+		for (EnemyState& enemyState : enemies)
+		{
+			if (!enemyState.obj || !enemyState.active || enemyState.nearMissAwarded)
+			{
+				continue;
+			}
+
+			SDL_Rect enemyRect = enemyState.obj->GetHitbox();
+			bool crossed = false;
+			if (enemyState.direction < 0)
+			{
+				crossed = (enemyState.prevX >= playerRect.x + playerRect.w) && (enemyRect.x + enemyRect.w < playerRect.x);
+			}
+			else
+			{
+				crossed = (enemyState.prevX + enemyRect.w <= playerRect.x) && (enemyRect.x > playerRect.x + playerRect.w);
+			}
+			bool playerAirborne = playerRect.y < (SCREEN_HEIGHT - GROUND_HEIGHT - SPRITE_SIZE - 4);
+			int verticalGap = std::abs((playerRect.y + playerRect.h) - enemyRect.y);
+			if (crossed && playerAirborne && verticalGap < 80)
+			{
+				scoreCounter += 50;
+				enemyState.nearMissAwarded = true;
+				floatingScoreValue = 50;
+				floatingScoreFrames = 30;
+				floatingScoreX = playerRect.x + playerRect.w / 2;
+				floatingScoreY = playerRect.y - 14;
+			}
 		}
 	}
 
 	if (playerFlickerFrames > 0) playerFlickerFrames--;
-	if (enemyFlickerFrames > 0) enemyFlickerFrames--;
+	for (EnemyState& enemyState : enemies)
+	{
+		if (enemyState.flickerFrames > 0)
+		{
+			enemyState.flickerFrames--;
+		}
+	}
 	if (playerInvulnFrames > 0) playerInvulnFrames--;
 	if (hitDangerFrames > 0) hitDangerFrames--;
 
-	if (butterflyActive)
+	int minuteStage = elapsedSeconds / 60;
+	const int activeButterflies = ActiveButterflySlotsForLevel();
+	for (size_t i = 0; i < butterflies.size(); ++i)
 	{
-		int minuteStage = elapsedSeconds / 60;
-		float centerY = (minuteStage % 2 == 0) ? 160.0f : 210.0f;
-		float amplitudeY = (minuteStage % 2 == 0) ? 72.0f : 92.0f;
-		float phaseSpeed = (minuteStage % 2 == 0) ? 0.028f : 0.038f;
-		butterflyX -= butterflySpeed;
-		butterflyPhase += phaseSpeed;
-		butterflyY = centerY + TriangleWave(butterflyPhase) * amplitudeY;
-		butterflyFrameTick++;
-		if (butterflyFrameTick >= 5)
+		ButterflyState& butterflyState = butterflies[i];
+		if ((int)i >= activeButterflies)
 		{
-			butterflyFrameTick = 0;
-			butterflyFrame = (butterflyFrame + 1) % BUTTERFLY_FRAMES;
+			butterflyState.active = false;
+			continue;
 		}
-		if (butterflyX < -BUTTERFLY_SIZE)
+
+		if (butterflyState.active)
 		{
-			ResetButterflyFlight();
-		}
-	}
-	else
-	{
-		if (butterflyRespawnFrames > 0)
-		{
-			butterflyRespawnFrames--;
+			float centerY = (minuteStage % 2 == 0) ? 160.0f : 210.0f;
+			float amplitudeY = (minuteStage % 2 == 0) ? 72.0f : 92.0f;
+			float phaseSpeed = (minuteStage % 2 == 0) ? 0.028f : 0.038f;
+			butterflyState.x += (float)butterflyState.direction * butterflySpeed * butterflyState.speedScale;
+			butterflyState.phase += phaseSpeed;
+			butterflyState.y = centerY + TriangleWave(butterflyState.phase) * amplitudeY;
+			butterflyState.frameTick++;
+			if (butterflyState.frameTick >= 5)
+			{
+				butterflyState.frameTick = 0;
+				butterflyState.frame = (butterflyState.frame + 1) % BUTTERFLY_FRAMES;
+			}
+
+			bool butterflyExited = (butterflyState.direction < 0)
+				? (butterflyState.x < -BUTTERFLY_SIZE)
+				: (butterflyState.x > SCREEN_WIDTH + BUTTERFLY_SIZE);
+			if (butterflyExited)
+			{
+				butterflyState.active = false;
+				butterflyState.respawnFrames = CalcButterflyRespawnFrames(elapsedSeconds, progress) + (int)i * 8;
+			}
 		}
 		else
 		{
-			ResetButterflyFlight();
+			if (butterflyState.respawnFrames > 0)
+			{
+				butterflyState.respawnFrames--;
+			}
+			else
+			{
+				SpawnButterfly(butterflyState, minuteStage, progress, false, (int)i * 8);
+			}
 		}
 	}
 
-	if (player && butterflyActive)
+	if (player)
 	{
 		SDL_Rect playerRect = player->GetHitbox();
-		SDL_Rect butterflyRect = { (int)butterflyX + 24, (int)butterflyY + 22, 102, 98 };
 		bool playerAirborne = playerRect.y < (SCREEN_HEIGHT - GROUND_HEIGHT - SPRITE_SIZE - 4);
-		if (playerAirborne && SDL_HasIntersection(&playerRect, &butterflyRect))
+		if (playerAirborne)
 		{
-			butterflyActive = false;
-			butterflyRespawnFrames = CalcButterflyRespawnFrames(elapsedSeconds);
-			butterflyFxFrames = 24;
-			butterflyFxX = butterflyRect.x + butterflyRect.w / 2;
-			butterflyFxY = butterflyRect.y + butterflyRect.h / 2;
-			butterflyCapturedCount++;
-			PlayButterflyCaptureSfx();
-			butterflyWinFrames = 20;
-			comboChain++;
-			if (comboChain > 5) comboChain = 5;
-			int capturePoints = 200 * comboChain;
-			scoreCounter += capturePoints;
-			floatingScoreValue = capturePoints;
-			floatingScoreFrames = 40;
-			floatingScoreX = butterflyRect.x + butterflyRect.w / 2;
-			floatingScoreY = butterflyRect.y - 12;
-			freezeFrames = 2;
-			if (butterflyCapturedCount >= butterflyGoal)
+			for (ButterflyState& butterflyState : butterflies)
 			{
-				if (levelNumber >= MAX_LEVELS)
+				if (!butterflyState.active)
 				{
-					gameCompleted = true;
-					levelCleared = false;
-					levelClearFrames = 0;
-					levelRestartFrames = 0;
-					musicTrackMode = 1;
-					musicPatternIndex = 0;
-					musicSamplesLeft = 0;
-					musicPhase = 0.0;
-					PlayWinSfx();
-					BeginHighScoreEntry();
+					continue;
 				}
-				else
+
+				SDL_Rect butterflyRect = { (int)butterflyState.x + 24, (int)butterflyState.y + 22, 102, 98 };
+				if (SDL_HasIntersection(&playerRect, &butterflyRect))
 				{
-					levelCleared = true;
-					levelClearFrames = 180;
-					levelRestartFrames = 0;
-					butterflyWinFrames = 60;
-					musicTrackMode = 1;
-					musicPatternIndex = 0;
-					musicSamplesLeft = 0;
-					musicPhase = 0.0;
-					PlayWinSfx();
+					butterflyState.active = false;
+					butterflyState.respawnFrames = CalcButterflyRespawnFrames(elapsedSeconds, progress);
+					butterflyFxFrames = 24;
+					butterflyFxX = butterflyRect.x + butterflyRect.w / 2;
+					butterflyFxY = butterflyRect.y + butterflyRect.h / 2;
+					butterflyCapturedCount++;
+					PlayButterflyCaptureSfx();
+					butterflyWinFrames = 20;
+					comboChain++;
+					if (comboChain > 5) comboChain = 5;
+					int capturePoints = 200 * comboChain;
+					scoreCounter += capturePoints;
+					floatingScoreValue = capturePoints;
+					floatingScoreFrames = 40;
+					floatingScoreX = butterflyRect.x + butterflyRect.w / 2;
+					floatingScoreY = butterflyRect.y - 12;
+					freezeFrames = 2;
+					if (butterflyCapturedCount >= butterflyGoal)
+					{
+						if (levelNumber >= MAX_LEVELS)
+						{
+							gameCompleted = true;
+							levelCleared = false;
+							levelClearFrames = 0;
+							levelRestartFrames = 0;
+							musicTrackMode = 1;
+							musicPatternIndex = 0;
+							musicSamplesLeft = 0;
+							musicPhase = 0.0;
+							PlayWinSfx();
+							BeginHighScoreEntry();
+						}
+						else
+						{
+							levelCleared = true;
+							levelClearFrames = 180;
+							levelRestartFrames = 0;
+							butterflyWinFrames = 60;
+							musicTrackMode = 1;
+							musicPatternIndex = 0;
+							musicSamplesLeft = 0;
+							musicPhase = 0.0;
+							PlayWinSfx();
+						}
+					}
+					break;
 				}
 			}
 		}
@@ -1615,11 +1835,18 @@ void Game::render()
 	DrawFlowerCluster(renderer, 472 + flowerOffset - SCREEN_WIDTH + shakeX, groundTopY + shakeY, 5);
 	DrawFlowerCluster(renderer, 708 + flowerOffset - SCREEN_WIDTH + shakeX, groundTopY + shakeY, 5);
 
-	if (butterflyActive && butterflyTex)
+	if (butterflyTex)
 	{
-		SDL_Rect src = { butterflyFrame * BUTTERFLY_SIZE, 0, BUTTERFLY_SIZE, BUTTERFLY_SIZE };
-		SDL_Rect dst = { (int)butterflyX + shakeX, (int)butterflyY + shakeY, BUTTERFLY_SIZE, BUTTERFLY_SIZE };
-		SDL_RenderCopy(renderer, butterflyTex, &src, &dst);
+		for (const ButterflyState& butterflyState : butterflies)
+		{
+			if (!butterflyState.active)
+			{
+				continue;
+			}
+			SDL_Rect src = { butterflyState.frame * BUTTERFLY_SIZE, 0, BUTTERFLY_SIZE, BUTTERFLY_SIZE };
+			SDL_Rect dst = { (int)butterflyState.x + shakeX, (int)butterflyState.y + shakeY, BUTTERFLY_SIZE, BUTTERFLY_SIZE };
+			SDL_RenderCopy(renderer, butterflyTex, &src, &dst);
+		}
 	}
 
 	if (butterflyFxFrames > 0)
@@ -1705,11 +1932,15 @@ void Game::render()
 		}
 	}
 
-	if (enemy && enemyActive)
+	for (EnemyState& enemyState : enemies)
 	{
-		if (enemyFlickerFrames == 0 || ((enemyFlickerFrames / 4) % 2 == 0))
+		if (!enemyState.obj || !enemyState.active)
 		{
-			enemy->Render();
+			continue;
+		}
+		if (enemyState.flickerFrames == 0 || ((enemyState.flickerFrames / 4) % 2 == 0))
+		{
+			enemyState.obj->Render();
 		}
 	}
 
@@ -1778,11 +2009,7 @@ void Game::render()
 		if (nameEntryActive)
 		{
 			std::string entryText = nameEntryBuffer;
-			if (entryText.empty())
-			{
-				entryText = "_";
-			}
-			else if ((SDL_GetTicks() / 250) % 2 == 0 && (int)entryText.size() < MAX_NAME_LENGTH)
+			if ((SDL_GetTicks() / 250) % 2 == 0 && (int)entryText.size() < MAX_NAME_LENGTH)
 			{
 				entryText.push_back('_');
 			}
@@ -1813,11 +2040,7 @@ void Game::render()
 		if (nameEntryActive)
 		{
 			std::string entryText = nameEntryBuffer;
-			if (entryText.empty())
-			{
-				entryText = "_";
-			}
-			else if ((SDL_GetTicks() / 250) % 2 == 0 && (int)entryText.size() < MAX_NAME_LENGTH)
+			if ((SDL_GetTicks() / 250) % 2 == 0 && (int)entryText.size() < MAX_NAME_LENGTH)
 			{
 				entryText.push_back('_');
 			}
@@ -1842,11 +2065,15 @@ void Game::clean()
 		player = nullptr;
 	}
 
-	if (enemy)
+	for (EnemyState& enemyState : enemies)
 	{
-		delete enemy;
-		enemy = nullptr;
+		if (enemyState.obj)
+		{
+			delete enemyState.obj;
+			enemyState.obj = nullptr;
+		}
 	}
+	enemies.clear();
 
 	if (butterflyTex)
 	{
