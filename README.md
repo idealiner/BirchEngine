@@ -45,7 +45,7 @@ sudo apt install -y build-essential cmake libsdl2-dev libsdl2-image-dev
 
 ```bash
 source ./emsdk/emsdk_env.sh
-emcmake cmake -S BirchEngine -B build-web -DBIRCHENGINE_BUILD_WEB=ON -DCMAKE_BUILD_TYPE=Release
+emcmake cmake -S PrincessOwliviaCB -B build-web -DPRINCESSOWLIVIACB_BUILD_WEB=ON -DCMAKE_BUILD_TYPE=Release
 cmake --build build-web -j
 python3 -m http.server 8091 -d build-web
 ```

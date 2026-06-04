@@ -29,7 +29,7 @@ jobs:
           version: 4.0.11
 
       - name: Configure web build
-        run: emcmake cmake -S BirchEngine -B build-web -DBIRCHENGINE_BUILD_WEB=ON -DCMAKE_BUILD_TYPE=Release
+        run: emcmake cmake -S PrincessOwliviaCB -B build-web -DPRINCESSOWLIVIACB_BUILD_WEB=ON -DCMAKE_BUILD_TYPE=Release
 
       - name: Build web target
         run: cmake --build build-web -j

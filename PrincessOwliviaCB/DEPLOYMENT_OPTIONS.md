@@ -1,4 +1,4 @@
-# BirchEngine deployment options
+# PrincessOwliviaCB deployment options
 
 This project is portable C++/SDL2 and can target desktop, web, Android, and iOS without rewriting the core game into Objective-C.
 
@@ -13,7 +13,7 @@ This project is portable C++/SDL2 and can target desktop, web, Android, and iOS 
 ### Build
 
 ```bash
-emcmake cmake -S . -B build-web -DBIRCHENGINE_BUILD_WEB=ON -DCMAKE_BUILD_TYPE=Release
+emcmake cmake -S . -B build-web -DPRINCESSOWLIVIACB_BUILD_WEB=ON -DCMAKE_BUILD_TYPE=Release
 cmake --build build-web -j
 ```
 

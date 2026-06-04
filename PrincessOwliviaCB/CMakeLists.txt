@@ -1,10 +1,10 @@
 cmake_minimum_required(VERSION 3.16)
-project(BirchEngine LANGUAGES CXX)
+project(PrincessOwliviaCB LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-option(BIRCHENGINE_BUILD_WEB "Build BirchEngine for web with Emscripten" OFF)
+option(PRINCESSOWLIVIACB_BUILD_WEB "Build PrincessOwliviaCB for web with Emscripten" OFF)
 set(BIRCHENGINE_GAME_NAME "PrincessOwliviaCB")
 
 set(BIRCHENGINE_SOURCES
@@ -21,12 +21,12 @@ if (EMSCRIPTEN)
     set(BIRCHENGINE_IS_WEB ON)
 endif()
 
-if (BIRCHENGINE_BUILD_WEB)
+if (PRINCESSOWLIVIACB_BUILD_WEB)
     set(BIRCHENGINE_IS_WEB ON)
 endif()
 
 if (BIRCHENGINE_IS_WEB AND NOT EMSCRIPTEN)
-    message(FATAL_ERROR "Web builds require Emscripten toolchain. Use: emcmake cmake -S . -B build-web -DBIRCHENGINE_BUILD_WEB=ON")
+    message(FATAL_ERROR "Web builds require Emscripten toolchain. Use: emcmake cmake -S . -B build-web -DPRINCESSOWLIVIACB_BUILD_WEB=ON")
 endif()
 
 if (BIRCHENGINE_IS_WEB)

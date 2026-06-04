@@ -36,7 +36,7 @@ jobs:
       - name: Configure and build
         shell: msys2 {0}
         run: |
-          cmake -S BirchEngine -B build-win -G Ninja -DCMAKE_BUILD_TYPE=Release
+          cmake -S PrincessOwliviaCB -B build-win -G Ninja -DCMAKE_BUILD_TYPE=Release
           cmake --build build-win -j
 
       - name: Package Windows zip
@@ -47,7 +47,7 @@ jobs:
           mkdir -p "$PACKAGE_DIR"
 
           cp build-win/PrincessOwliviaCB.exe "$PACKAGE_DIR/"
-          cp -r BirchEngine/assets "$PACKAGE_DIR/assets"
+          cp -r PrincessOwliviaCB/assets "$PACKAGE_DIR/assets"
 
           # Copy runtime DLLs resolved by ldd without failing on empty matches.
           ldd build-win/PrincessOwliviaCB.exe \

@@ -47,7 +47,7 @@ SDL_Texture* TextureManager::LoadTexture(const char* texture, SDL_Renderer* ren)
 	candidates.push_back(JoinPath("assets", fileOnly));
 	candidates.push_back(JoinPath("../assets", fileOnly));
 	candidates.push_back(JoinPath("../../assets", fileOnly));
-	candidates.push_back(JoinPath("BirchEngine/assets", fileOnly));
+	candidates.push_back(JoinPath("PrincessOwliviaCB/assets", fileOnly));
 
 	char* basePathRaw = SDL_GetBasePath();
 	if (basePathRaw)
@@ -59,7 +59,7 @@ SDL_Texture* TextureManager::LoadTexture(const char* texture, SDL_Renderer* ren)
 		candidates.push_back(JoinPath(basePath, JoinPath("assets", fileOnly)));
 		candidates.push_back(JoinPath(basePath, JoinPath("../assets", fileOnly)));
 		candidates.push_back(JoinPath(basePath, JoinPath("../../assets", fileOnly)));
-		candidates.push_back(JoinPath(basePath, JoinPath("../BirchEngine/assets", fileOnly)));
+		candidates.push_back(JoinPath(basePath, JoinPath("../PrincessOwliviaCB/assets", fileOnly)));
 	}
 
 	SDL_Surface* tempSurface = nullptr;
@@ -99,7 +99,7 @@ SDL_Surface* TextureManager::LoadSurface(const char* texture)
 	candidates.push_back(JoinPath("assets", fileOnly));
 	candidates.push_back(JoinPath("../assets", fileOnly));
 	candidates.push_back(JoinPath("../../assets", fileOnly));
-	candidates.push_back(JoinPath("BirchEngine/assets", fileOnly));
+	candidates.push_back(JoinPath("PrincessOwliviaCB/assets", fileOnly));
 
 	char* basePathRaw = SDL_GetBasePath();
 	if (basePathRaw)
@@ -111,7 +111,7 @@ SDL_Surface* TextureManager::LoadSurface(const char* texture)
 		candidates.push_back(JoinPath(basePath, JoinPath("assets", fileOnly)));
 		candidates.push_back(JoinPath(basePath, JoinPath("../assets", fileOnly)));
 		candidates.push_back(JoinPath(basePath, JoinPath("../../assets", fileOnly)));
-		candidates.push_back(JoinPath(basePath, JoinPath("../BirchEngine/assets", fileOnly)));
+		candidates.push_back(JoinPath(basePath, JoinPath("../PrincessOwliviaCB/assets", fileOnly)));
 	}
 
 	for (const std::string& path : candidates)
