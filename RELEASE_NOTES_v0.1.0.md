@@ -14,7 +14,7 @@ Initial public release.
 
 - Main web entry file: PrincessOwliviaCB.html
 - Deployable through GitHub Pages workflow
-- Play online: https://idealiner.github.io/BirchEngine/
+- Play online: https://idealiner.github.io/PrincessOwliviaCB/
 
 ## Desktop Download
 
@@ -32,6 +32,6 @@ Initial public release.
 - Browser version is served over HTTP/HTTPS only (not file://)
 - Native high-score XML is saved in the working directory
 
-**Website**: https://idealiner.github.io/BirchEngine/
+**Website**: https://idealiner.github.io/PrincessOwliviaCB/
 
-**Full Changelog**: https://github.com/idealiner/BirchEngine/commits/v0.1.0
+**Full Changelog**: https://github.com/idealiner/PrincessOwliviaCB/commits/v0.1.0

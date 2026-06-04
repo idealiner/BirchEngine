@@ -2,6 +2,27 @@
 
 All notable changes to this project are documented in this file.
 
+## [0.2.0] - 2026-06-04
+
+### Added
+
+- Randomized enemy and butterfly spawn side entry on every spawn
+- Level-start grace window to prevent instant collision at new level start
+- Web fullscreen improvements in custom shell integration
+
+### Changed
+
+- Simplified gameplay pacing logic to single active enemy and single active butterfly
+- Increased per-level difficulty by keeping speed scaling while reducing spawn-system complexity
+- Butterfly counter icon restyled with clearer lower wings and pink/purple palette
+- HUD text shadow tuned to a darker, more natural shadow color
+
+### Fixed
+
+- Predictable mirrored spawn patterns on higher levels
+- Immediate enemy-player collision on second zero after level transition
+- Name-entry flow and restart handling edge cases
+
 ## [0.1.0] - 2026-06-03
 
 ### Added

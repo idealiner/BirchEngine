@@ -13,7 +13,7 @@ PrincessOwliviaCB is a fast arcade platformer built with C++17, SDL2, and SDL2_i
 
 When GitHub Pages is enabled for this repository, the web game is available at:
 
-- https://idealiner.github.io/BirchEngine/
+- https://idealiner.github.io/PrincessOwliviaCB/
 
 ## Build Requirements
 
@@ -86,12 +86,13 @@ Yes, with caveats:
 - Linux single-file option: AppImage can produce one downloadable file while still bundling dependencies.
 - Windows: one .exe is possible with static linking or by bundling DLLs beside the executable.
 
-## Release v0.1.0
+## Releases
 
 See:
 
 - CHANGELOG.md
 - RELEASE_NOTES_v0.1.0.md
+- RELEASE_NOTES_v0.2.0.md
 
 ## License
 
