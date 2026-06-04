@@ -58,6 +58,7 @@ int butterflyFxX = 0;
 int butterflyFxY = 0;
 
 int playerInvulnFrames = 0;
+int levelStartGraceFrames = 0;
 int comboChain = 0;
 int freezeFrames = 0;
 int shakeFrames = 0;
@@ -183,12 +184,14 @@ static void BeginHighScoreEntry();
 static void FinishHighScoreEntry();
 static int ActiveEnemySlotsForLevel();
 static int ActiveButterflySlotsForLevel();
+static int ChooseEnemySpawnDirection();
+static int ChooseButterflySpawnDirection();
 static int CalcEnemySpeed(float progress);
 static int CalcEnemyRespawnFrames(float progress);
 static void SpawnEnemy(EnemyState& enemyState, float progress, bool immediate);
 static int CalcButterflyRespawnFrames(int elapsed, float progress);
 static float CalcButterflySpeed(float progress);
-static void SpawnButterfly(ButterflyState& butterflyState, int minuteStage, float progress, bool immediate, int staggerFrames);
+static void SpawnButterfly(ButterflyState& butterflyState, int minuteStage, float progress, bool immediate);
 
 static float TriangleWave(float t)
 {
@@ -216,29 +219,38 @@ static int CalcButterflyRespawnFrames(int elapsed, float progress)
 
 static int ActiveEnemySlotsForLevel()
 {
-	return std::clamp(levelNumber, 1, 4);
+	return 1;
 }
 
 static int ActiveButterflySlotsForLevel()
 {
-	if (levelNumber <= 1) return 1;
-	if (levelNumber == 2) return 2;
-	return 3;
+	return 1;
+}
+
+static int ChooseEnemySpawnDirection()
+{
+	return (std::rand() % 2 == 0) ? -1 : 1;
+}
+
+static int ChooseButterflySpawnDirection()
+{
+	return (std::rand() % 2 == 0) ? -1 : 1;
 }
 
 static int CalcEnemySpeed(float progress)
 {
-	int baseSpeed = 2 + (levelNumber - 1);
-	int scaledSpeed = baseSpeed + (int)std::floor(progress * (5.0f + (float)(levelNumber - 1)));
-	return std::clamp(scaledSpeed, 2, 14);
+	float levelWeight = 0.75f;
+	float baseSpeed = 2.0f + (float)(levelNumber - 1) * levelWeight;
+	float scaledSpeed = baseSpeed + progress * ((5.0f + (float)(levelNumber - 1)) * 0.75f);
+	return std::clamp((int)std::round(scaledSpeed), 2, 14);
 }
 
 static int CalcEnemyRespawnFrames(float progress)
 {
-	int levelBoost = (levelNumber - 1) * 6;
+	int levelBoost = (int)std::floor((float)(levelNumber - 1) * 4.5f);
 	int minFrames = std::max(6, 20 - levelBoost);
 	int maxFrames = std::max(minFrames + 8, 56 - levelBoost * 2);
-	int variableFrames = (int)std::floor(progress * 26.0f);
+	int variableFrames = (int)std::floor(progress * 20.0f);
 	return std::max(minFrames, maxFrames - variableFrames);
 }
 
@@ -250,7 +262,7 @@ static void SpawnEnemy(EnemyState& enemyState, float progress, bool immediate)
 	}
 
 	const int spawnOffset = std::max(36, 210 - (int)std::floor(progress * 160.0f));
-	enemyState.direction = (std::rand() % 2 == 0) ? -1 : 1;
+	enemyState.direction = ChooseEnemySpawnDirection();
 	const int spawnX = (enemyState.direction < 0) ? (SCREEN_WIDTH + spawnOffset) : (-SPRITE_SIZE - spawnOffset);
 	enemyState.obj->SetPosition(spawnX, SCREEN_HEIGHT - GROUND_HEIGHT - SPRITE_SIZE);
 	enemyState.active = true;
@@ -262,27 +274,31 @@ static void SpawnEnemy(EnemyState& enemyState, float progress, bool immediate)
 
 static float CalcButterflySpeed(float progress)
 {
-	float baseSpeed = 3.0f + 0.5f * (float)(levelNumber - 1);
-	float scaled = baseSpeed + (2.6f + 0.45f * (float)(levelNumber - 1)) * progress;
+	float levelWeight = 0.75f;
+	float baseSpeed = 3.0f + 0.5f * (float)(levelNumber - 1) * levelWeight;
+	float scaled = baseSpeed + ((2.6f + 0.45f * (float)(levelNumber - 1)) * 0.75f) * progress;
 	return std::min(9.0f, scaled);
 }
 
-static void SpawnButterfly(ButterflyState& butterflyState, int minuteStage, float progress, bool immediate, int staggerFrames)
+static void SpawnButterfly(ButterflyState& butterflyState, int minuteStage, float progress, bool immediate)
 {
-	butterflyState.direction = (std::rand() % 2 == 0) ? -1 : 1;
+	butterflyState.direction = ChooseButterflySpawnDirection();
 	int spawnOffset = std::max(60, 220 - (int)std::floor(progress * 150.0f));
-	butterflyState.x = (butterflyState.direction < 0)
+	float spawnX = (butterflyState.direction < 0)
 		? (float)(SCREEN_WIDTH + spawnOffset)
 		: (float)(-BUTTERFLY_SIZE - spawnOffset);
 	float centerY = (minuteStage % 2 == 0) ? 160.0f : 210.0f;
 	float amplitudeY = (minuteStage % 2 == 0) ? 72.0f : 92.0f;
-	butterflyState.phase += 0.23f + (float)((std::rand() % 7) + 1) * 0.09f;
-	butterflyState.y = centerY + TriangleWave(butterflyState.phase) * amplitudeY;
+	float nextPhase = butterflyState.phase + 0.23f + (float)((std::rand() % 7) + 1) * 0.09f;
+	float spawnY = centerY + TriangleWave(nextPhase) * amplitudeY;
+	butterflyState.x = spawnX;
+	butterflyState.phase = nextPhase;
+	butterflyState.y = spawnY;
 	butterflyState.frame = std::rand() % BUTTERFLY_FRAMES;
 	butterflyState.frameTick = 0;
 	butterflyState.speedScale = 0.88f + (float)(std::rand() % 35) / 100.0f;
 	butterflyState.active = true;
-	butterflyState.respawnFrames = immediate ? 0 : (CalcButterflyRespawnFrames(elapsedSeconds, progress) + staggerFrames);
+	butterflyState.respawnFrames = immediate ? 0 : CalcButterflyRespawnFrames(elapsedSeconds, progress);
 }
 
 static void DrawButterflyIcon(SDL_Renderer* renderer, int x, int y, int p)
@@ -461,6 +477,7 @@ static void ResetLevelState(bool incrementLevel)
 	comboChain = 0;
 	playerFlickerFrames = 0;
 	playerInvulnFrames = 0;
+	levelStartGraceFrames = 60;
 	butterflyFxFrames = 0;
 	stompImpactFrames = 0;
 	butterflyWinFrames = 0;
@@ -494,12 +511,12 @@ static void ResetLevelState(bool incrementLevel)
 		{
 			if (i == 0)
 			{
-				SpawnButterfly(butterflyState, 0, 0.0f, true, 0);
+				SpawnButterfly(butterflyState, 0, 0.0f, true);
 			}
 			else
 			{
 				butterflyState.active = false;
-				butterflyState.respawnFrames = 24 + (int)i * 20;
+				butterflyState.respawnFrames = 30 + (int)i * 24 + (std::rand() % 22);
 			}
 		}
 		else
@@ -531,7 +548,7 @@ static void ResetLevelState(bool incrementLevel)
 				enemyState.active = false;
 				enemyState.flickerFrames = 0;
 				enemyState.nearMissAwarded = false;
-				enemyState.respawnFrames = 10 + (int)i * 14;
+				enemyState.respawnFrames = 24 + (int)i * 18 + (std::rand() % 16);
 			}
 		}
 		else
@@ -1529,6 +1546,10 @@ void Game::update()
 			{
 				continue;
 			}
+			if (levelStartGraceFrames > 0)
+			{
+				continue;
+			}
 
 			SDL_Rect enemyRect = enemyState.obj->GetHitbox();
 			if (SDL_HasIntersection(&playerRect, &enemyRect))
@@ -1604,6 +1625,7 @@ void Game::update()
 		}
 	}
 	if (playerInvulnFrames > 0) playerInvulnFrames--;
+	if (levelStartGraceFrames > 0) levelStartGraceFrames--;
 	if (hitDangerFrames > 0) hitDangerFrames--;
 
 	int minuteStage = elapsedSeconds / 60;
@@ -1649,7 +1671,7 @@ void Game::update()
 			}
 			else
 			{
-				SpawnButterfly(butterflyState, minuteStage, progress, false, (int)i * 8);
+				SpawnButterfly(butterflyState, minuteStage, progress, false);
 			}
 		}
 	}
@@ -1845,7 +1867,8 @@ void Game::render()
 			}
 			SDL_Rect src = { butterflyState.frame * BUTTERFLY_SIZE, 0, BUTTERFLY_SIZE, BUTTERFLY_SIZE };
 			SDL_Rect dst = { (int)butterflyState.x + shakeX, (int)butterflyState.y + shakeY, BUTTERFLY_SIZE, BUTTERFLY_SIZE };
-			SDL_RenderCopy(renderer, butterflyTex, &src, &dst);
+			SDL_RendererFlip flip = (butterflyState.direction > 0) ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
+			SDL_RenderCopyEx(renderer, butterflyTex, &src, &dst, 0.0, NULL, flip);
 		}
 	}
 
